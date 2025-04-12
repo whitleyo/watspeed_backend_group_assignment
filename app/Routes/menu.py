@@ -14,7 +14,7 @@ def get_menu():
     """Retrieve the coffee menu."""
     # return jsonify(menu_items), 200
     # For now, we return a status code and a placeholder string
-    # in json format
-    status=0
-    data="data"
-    return jsonify({status: status, data: data})
+    # in json format.
+    status=int(0)
+    data=str("data")
+    return jsonify({'status': status, 'data': data})

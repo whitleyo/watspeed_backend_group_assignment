@@ -1,0 +1,72 @@
+# Python and Flask
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.py,cover
+.env
+.venv/
+venv/
+ENV/
+instance/
+secrets.py
+
+# Database
+*.sqlite
+*.db
+*.sql
+/db/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.sublime-*
+
+# Windows specific
+Thumbs.db
+Desktop.ini
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Project files
+*.log
+logs/
+*.bak
+*.tmp
+*.temp
+
+# Test and coverage
+.coverage
+htmlcov/
+.pytest_cache/
+/test-results/
+
+# Static files (cache)
+app/static/css/*.min.css
+app/static/js/*.min.js
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+*.egg
+*.manifest
+*.spec
+
+# Project-specific ignores
+/temp_uploads/
+*.pdf
+*.xlsx
+*.xls
+*.doc
+
+# Playwright (E2E tests)
+playwright-report/
+test-results/
+/downloads/

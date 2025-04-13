@@ -13,7 +13,9 @@ def register():
     Response: JSON with status and data fields.
     """
     # Stub response
-    response = {"status": 1, "data": "data"}
+    status=int(1)
+    data=str("data")
+    response = {"status": status, "data": data}
     return jsonify(response)
 
 @auth_bp.route('/sign-in', methods=['POST'])
@@ -27,7 +29,9 @@ def sign_in():
     Response: JSON with status and data fields.
     """
     # Stub response
-    response = {"status": 1, "data": "data"}
+    status=int(1)
+    data=str("data")
+    response = {"status": status, "data": data}
     return jsonify(response)
 
 @auth_bp.route('/sign-out', methods=['POST'])
@@ -41,5 +45,7 @@ def sign_out():
     Response: JSON with status and data fields.
     """
     # Stub response
-    response = {"status": 1, "data": "data"}
+    status=int(1)
+    data=str("data")
+    response = {"status": status, "data": data}
     return jsonify(response)

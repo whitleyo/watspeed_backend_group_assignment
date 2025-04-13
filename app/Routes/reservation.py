@@ -6,7 +6,7 @@ reservations_bp = Blueprint('reservations', __name__, url_prefix='/reservations'
 reserved_seats = set()
 
 @reservations_bp.route('/reserve-seat/<int:seat_id>', methods=['POST'])
-def reserve_seat(seat_id):
+def reserve_seat(seat_id: int):
     """
     Reserve a seat by seat_id.
     
@@ -27,7 +27,7 @@ def reserve_seat(seat_id):
     return jsonify({"data": data, "status": status})
 
 @reservations_bp.route('/cancel-seat/<int:seat_id>', methods=['DELETE'])
-def cancel_reservation(seat_id):
+def cancel_reservation(seat_id: int):
     """
     Cancel a seat reservation by seat_id.
     

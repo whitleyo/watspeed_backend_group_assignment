@@ -1,8 +1,29 @@
 from flask import Blueprint, jsonify
+from flask_expects_json import expects_json
 
 auth_bp = Blueprint('auth', __name__)
 
+register_schema = {
+    'type': 'object',
+    'properties': {
+        'username': {'type': 'string'},
+        'password': {'type': 'string'},
+        'email': {'type': 'string', 'format': 'email'}
+    },
+    'required': ['username', 'password', 'email']
+    }
+
+sign_in_schema = {
+    'type': 'object',
+    'properties': {
+        'username': {'type': 'string'},
+        'password': {'type': 'string'}
+    },
+    'required': ['username', 'password']
+    }
+
 @auth_bp.route('/register', methods=['POST'])
+@expects_json(register_schema)
 def register():
     """
     Register a new user.
@@ -18,6 +39,7 @@ def register():
     response = {"status": status, "data": data}
     return jsonify(response)
 
+@expects_json(sign_in_schema)
 @auth_bp.route('/sign-in', methods=['POST'])
 def sign_in():
     """

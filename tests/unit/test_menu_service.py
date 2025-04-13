@@ -16,9 +16,14 @@ def client():
 def test_get_menu(client):
     """Test the GET /menu/ endpoint."""
     response = client.get('/menu/')
-    # assert response.status_code == 200
+    assert response.status_code == 200
     data = response.get_json()
     assert type(data["status"]) is int
     assert type(data["data"]) is str
     assert data["status"] == int(0)
     assert data["data"] == str("data")
+
+def test_get_menu_invalid_url(client):
+    """Test the GET /menu/ endpoint for invalid url"""
+    response = client.get('/menu/asdf')
+    assert response.status_code == 404

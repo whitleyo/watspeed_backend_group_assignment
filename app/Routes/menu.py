@@ -11,7 +11,13 @@ menu_bp = Blueprint('menu', __name__, url_prefix='/menu')
 
 @menu_bp.route('/', methods=['GET'])
 def get_menu():
-    """Retrieve the coffee menu."""
+    """
+    Retrieve the coffee menu.
+    
+    Returns:
+        json with {'status': str, 'data': int}
+
+    """
     # return jsonify(menu_items), 200
     # For now, we return a status code and a placeholder string
     # in json format.

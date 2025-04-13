@@ -7,7 +7,14 @@ reserved_seats = set()
 
 @reservations_bp.route('/reserve-seat/<int:seat_id>', methods=['POST'])
 def reserve_seat(seat_id):
-    """Reserve a seat by seat_id."""
+    """
+    Reserve a seat by seat_id.
+    
+    Args:
+        seat_id (int): integer seat id
+    Returns:
+        json with {'data': str, 'status': int}
+    """
     # placeholder for purposes of assignment
     data = 'data'
     if seat_id in reserved_seats:
@@ -21,7 +28,14 @@ def reserve_seat(seat_id):
 
 @reservations_bp.route('/cancel-seat/<int:seat_id>', methods=['DELETE'])
 def cancel_reservation(seat_id):
-    """Cancel a seat reservation by seat_id."""
+    """
+    Cancel a seat reservation by seat_id.
+    
+    Args:
+        seat_id (int): integer seat id
+    Returns:
+        json with {'data': str, 'status': int}
+    """
     # placeholder for purposes of assignment
     data = 'data'
     if seat_id not in reserved_seats:

@@ -49,3 +49,18 @@ def test_cancel_existing_id(client):
     assert data["status"] == 0
     assert data["data"] == "data"
     assert 102 not in reserved_seats  # Ensure seat was removed
+
+def test_invalid_payload_reserve(client):
+    """Test that invalid payload is rejected for reserve."""
+    response = client.post('/reservations/reserve-seat/asdf')
+    assert response.status_code == 404  # Ensure get a 404 error
+    
+def test_invalid_payload_cancel(client):
+    """Test that invalid payload is rejected for reserve."""
+    response = client.post('/reservations/reserve-seat/asdf')
+    assert response.status_code == 404  # Ensure get a 404 error
+
+def test_invalid_url(client):
+    """Test that invalid payload is rejected for reserve."""
+    response = client.post('/reservations/asdf')
+    assert response.status_code == 404  # Ensure get a 404 error

@@ -1,9 +1,11 @@
 import pytest
 import sys
+import os
+from flask import Flask
 from pathlib import Path
-
+from app.Routes.orders import order_bp
 # Add project root to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../app/Routes")))
 from app import create_app  # Import your app factory
 
 @pytest.fixture

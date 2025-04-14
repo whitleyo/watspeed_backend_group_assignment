@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from flask_expects_json import expects_json
+# from flask_expects_json import expects_json
 
 auth_bp = Blueprint('auth', __name__)
 

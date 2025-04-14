@@ -1,21 +1,17 @@
 import pytest
 import sys
-from pathlib import Path
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../app/Routes")))
+from flask import Flask
 
-# Add project root to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from app import create_app  # Import your app factory
-
-@pytest.fixture
-def app():
-    """Create and configure a test Flask app using your factory"""
-    app = create_app()
-    app.config['TESTING'] = True
-    return app
+from orders import order_bp # Adjusted import path dynamically
 
 @pytest.fixture
-def client(app):
-    """Create a test client"""
+def client():
+    """Create a test client for the Flask app."""
+    app = Flask(__name__)
+    app.register_blueprint(order_bp)
+    app.testing = True
     return app.test_client()
 
 # Test data

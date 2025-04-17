@@ -6,34 +6,35 @@ order_bp = Blueprint('order', __name__, url_prefix='/order')
 @order_bp.route('', methods=['POST'])
 def order():
     """
-    Create a new coffee order.
-    ---
-    URL: /order
-    Method: POST
-    Request JSON: {user_id: int, items: [{coffee_type: str, size: str, quantity: int}]}
-    Response: {status: 0|1, data: str|dict}
+    Create new order
+    Returns:
+        JSON response with status (int) and data (str) fields.
     """
-    return jsonify({"status": 0, "data": "data"})
+    data = request.get_json()
+    #result = create_order(data)
+    return jsonify({ "status": 0, "data": "data" })
 
 @order_bp.route('/modify/<int:order_id>', methods=['PUT'])
 def modify(order_id):
     """
-    Update an existing order.
-    ---
-    URL: /order/modify/<order_id>
-    Method: PUT
-    Request JSON: {new_items: list, reason: str(optional)}
-    Response: {status: 0|1, data: str|dict}
+    Update existing order
+    Args:
+        order_id (int): The ID of the order to modify.
+    Returns:
+        JSON response with status (int) and data (str) fields.
     """
-    return jsonify({"status": 0, "data": "data"})
+    data = request.get_json()
+    #result = modify_order(order_id, data)
+    return jsonify({ "status": 0, "data": "data" })
 
 @order_bp.route('/cancel/<int:order_id>', methods=['DELETE'])
 def cancel(order_id):
     """
-    Cancel an order.
-    ---
-    URL: /order/cancel/<order_id>
-    Method: DELETE
-    Response: {status: 0|1, data: str|dict}
+    Cancel order
+    Args:
+        order_id (int): The ID of the order to cancel.
+    Returns:
+        JSON response with status (int) and data (str) fields.
     """
-    return jsonify({"status": 0, "data": "data"})
+    #result = cancel_order(order_id)
+    return jsonify({ "status": 0, "data": "data" })

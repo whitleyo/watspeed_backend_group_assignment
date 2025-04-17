@@ -1,21 +1,17 @@
 import pytest
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../app/Routes")))
 from flask import Flask
-from app.Routes.orders import order_bp  # Directly import the blueprint we're testing
+
+from orders import order_bp # Adjusted import path dynamically
 
 @pytest.fixture
-def app():
-    """Create a minimal Flask app with ONLY the order blueprint"""
+def client():
+    """Create a test client for the Flask app."""
     app = Flask(__name__)
-    app.config['TESTING'] = True
-    
-    # Register only the blueprint we're testing
     app.register_blueprint(order_bp)
-    
-    return app
-
-@pytest.fixture
-def client(app):
-    """Create a test client"""
+    app.testing = True
     return app.test_client()
 
 def test_create_order(client):

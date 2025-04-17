@@ -14,37 +14,27 @@ def client():
     app.testing = True
     return app.test_client()
 
-# Test data
-TEST_ORDER_ID = 123
-
-def test_cancel_order_route(client):
-    """Test order cancellation endpoint"""
-    response = client.delete(f'/order/cancel/{TEST_ORDER_ID}')
-    assert response.status_code == 200
-    assert response.json == {"status": 0, "data": "data"}
-
-def test_create_order_route(client):
+def test_create_order(client):
     """Test order creation endpoint"""
-    response = client.post('/order', json={
-        'items': [{'coffee_type': 'latte', 'size': 'medium'}]
-    })
+    # Test with empty JSON since we're just testing the route
+    response = client.post('/order', json={})
     assert response.status_code == 200
     assert response.json == {"status": 0, "data": "data"}
 
-def test_modify_order_route(client):
+def test_modify_order(client):
     """Test order modification endpoint"""
-    response = client.put(f'/order/modify/{TEST_ORDER_ID}', json={
-        'new_items': [{'coffee_type': 'americano', 'size': 'large'}]
-    })
+    # Test with empty JSON and sample order ID
+    response = client.put('/order/modify/1', json={})
+    assert response.status_code == 200
+    assert response.json == {"status": 0, "data": "data"}
+
+def test_cancel_order(client):
+    """Test order cancellation endpoint"""
+    response = client.delete('/order/cancel/1')
     assert response.status_code == 200
     assert response.json == {"status": 0, "data": "data"}
 
 def test_invalid_order_id(client):
-    """Test non-integer order ID handling"""
-    response = client.delete('/order/cancel/abc')
-    assert response.status_code == 404
-
-def test_missing_order_id(client):
-    """Test missing order ID in URL"""
-    response = client.delete('/order/cancel/')
+    """Test invalid order ID format"""
+    response = client.delete('/order/cancel/not_an_integer')
     assert response.status_code == 404

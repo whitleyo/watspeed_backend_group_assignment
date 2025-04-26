@@ -1,66 +1,213 @@
 import pytest
-import sys
-import os
-from flask import Flask
-# Adjust the path to import reservations_bp from ../../app/Routes/reservation.py
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../app/Routes")))
-from reservation import reservations_bp, reserved_seats  # Adjusted import path dynamically
+from unittest.mock import MagicMock, patch
+from datetime import datetime, timedelta
+from app.domain.reservation import Reservation
+from app.Services.reservation_service import ReservationService
+from app.daos.reservation_dao import ReservationDAO
+from app.daos.table_dao import TableDAO
 
-@pytest.fixture
-def client():
-    """Create a test client for the Flask app."""
-    app = Flask(__name__)
-    app.register_blueprint(reservations_bp)
-    app.testing = True
-    return app.test_client()
+class TestReservationService:
+    @pytest.fixture
+    def mock_daos(self):
+        """Create mock DAOs for testing"""
+        reservation_dao = MagicMock(spec=ReservationDAO)
+        table_dao = MagicMock(spec=TableDAO)
+        return reservation_dao, table_dao
 
-def test_cancel_non_existent_id(client):
-    """Test if cancellation of a non-existent id returns status 1 and 'data' as a string."""
-    response = client.delete('/reservations/cancel-seat/99')  # ID 99 assumed to be non-existent
-    data = response.get_json()
-    assert response.status_code == 200  # Function returns JSON instead of 404
-    assert data["status"] == 1
-    assert data["data"] == "data"
+    @pytest.fixture
+    def sample_reservation(self):
+        """Sample reservation fixture"""
+        return Reservation(
+            reservation_id=1,
+            table_id=2,
+            customer_name="Test Customer",
+            people_count=4,
+            time=(datetime.now() + timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
+        )
 
-def test_reserve_new_id(client):
-    """Test if reservation of a new id returns status 0, 'data' as a string, and id exists in reserved_seats."""
-    response = client.post('/reservations/reserve-seat/100')  # ID 100 assumed to be new
-    data = response.get_json()
-    assert response.status_code == 200  # Function returns JSON instead of 201
-    assert data["status"] == 0
-    assert data["data"] == "data"
-    assert 100 in reserved_seats  # Ensure seat was added
+    # ---- Creation Tests ----
+    def test_create_reservation_success(self, mock_daos, sample_reservation):
+        """Test successful reservation creation"""
+        reservation_dao, table_dao = mock_daos
+        table_dao.find.return_value = MagicMock(capacity=4)
+        reservation_dao.save.return_value = sample_reservation
+        
+        service = ReservationService(reservation_dao, table_dao)
+        result = service.create_reservation(
+            table_id=2,
+            customer_name="Test Customer",
+            people_count=4,
+            time="2023-12-01 14:00:00"
+        )
+        
+        assert result == sample_reservation
+        reservation_dao.save.assert_called_once()
 
-def test_reserve_existing_id(client):
-    """Test if reservation of an existing id returns status 1 and 'data' as a string."""
-    client.post('/reservations/reserve-seat/101')  # Reserve ID first
-    response = client.post('/reservations/reserve-seat/101')  # Try to reserve again
-    data = response.get_json()
-    assert response.status_code == 200  # Function returns JSON instead of 404
-    assert data["status"] == 1
-    assert data["data"] == "data"
+    def test_create_reservation_table_not_found(self, mock_daos):
+        """Test reservation with non-existent table"""
+        reservation_dao, table_dao = mock_daos
+        table_dao.find.return_value = None
+        
+        service = ReservationService(reservation_dao, table_dao)
+        result = service.create_reservation(
+            table_id=99,
+            customer_name="Test Customer",
+            people_count=4,
+            time="2023-12-01 14:00:00"
+        )
+        
+        assert result is None
+        table_dao.find.assert_called_once_with(99)
 
-def test_cancel_existing_id(client):
-    """Test if cancellation of an existing id returns status 0, 'data' as a string, and id is removed."""
-    client.post('/reservations/reserve-seat/102')  # Reserve ID first
-    response = client.delete('/reservations/cancel-seat/102')  # Cancel it
-    data = response.get_json()
-    assert response.status_code == 200
-    assert data["status"] == 0
-    assert data["data"] == "data"
-    assert 102 not in reserved_seats  # Ensure seat was removed
+    def test_create_reservation_exceeds_capacity(self, mock_daos):
+        """Test reservation exceeding table capacity"""
+        reservation_dao, table_dao = mock_daos
+        table_dao.find.return_value = MagicMock(capacity=2)  # Table only fits 2
+        
+        service = ReservationService(reservation_dao, table_dao)
+        result = service.create_reservation(
+            table_id=1,
+            customer_name="Test Customer",
+            people_count=4,  # Trying to fit 4
+            time="2023-12-01 14:00:00"
+        )
+        
+        assert result is None
+        table_dao.find.assert_called_once_with(1)
 
-def test_invalid_payload_reserve(client):
-    """Test that invalid payload is rejected for reserve."""
-    response = client.post('/reservations/reserve-seat/asdf')
-    assert response.status_code == 404  # Ensure get a 404 error
-    
-def test_invalid_payload_cancel(client):
-    """Test that invalid payload is rejected for reserve."""
-    response = client.post('/reservations/reserve-seat/asdf')
-    assert response.status_code == 404  # Ensure get a 404 error
+    # ---- Time Conflict Tests ----
+    def test_create_reservation_time_conflict(self, mock_daos, sample_reservation):
+        """Test reservation with conflicting time"""
+        reservation_dao, table_dao = mock_daos
+        table_dao.find.return_value = MagicMock(capacity=4)
+        reservation_dao.find_by_table.return_value = [sample_reservation]  # Existing reservation
+        
+        service = ReservationService(reservation_dao, table_dao)
+        result = service.create_reservation(
+            table_id=2,
+            customer_name="New Customer",
+            people_count=4,
+            time=sample_reservation.time  # Same time as existing
+        )
+        
+        assert result is None
+        reservation_dao.find_by_table.assert_called_once_with(2)
 
-def test_invalid_url(client):
-    """Test that invalid payload is rejected for reserve."""
-    response = client.post('/reservations/asdf')
-    assert response.status_code == 404  # Ensure get a 404 error
+    # ---- Update Tests ----
+    def test_update_reservation_success(self, mock_daos, sample_reservation):
+        """Test successful reservation update"""
+        reservation_dao, table_dao = mock_daos
+        reservation_dao.find.return_value = sample_reservation
+        table_dao.find.return_value = MagicMock(capacity=4)
+        
+        updated_reservation = Reservation(
+            reservation_id=1,
+            table_id=3,  # Changed table
+            customer_name="Updated Customer",
+            people_count=2,
+            time="2023-12-01 15:00:00"
+        )
+        reservation_dao.save.return_value = updated_reservation
+        
+        service = ReservationService(reservation_dao, table_dao)
+        result = service.update_reservation(
+            reservation_id=1,
+            table_id=3,
+            customer_name="Updated Customer",
+            people_count=2,
+            time="2023-12-01 15:00:00"
+        )
+        
+        assert result == updated_reservation
+        reservation_dao.save.assert_called_once()
+
+    def test_update_non_existent_reservation(self, mock_daos):
+        """Test updating non-existent reservation"""
+        reservation_dao, table_dao = mock_daos
+        reservation_dao.find.return_value = None
+        
+        service = ReservationService(reservation_dao, table_dao)
+        result = service.update_reservation(
+            reservation_id=99,
+            table_id=1,
+            time="2023-12-01 14:00:00"
+        )
+        
+        assert result is None
+        reservation_dao.find.assert_called_once_with(99)
+
+    # ---- Cancellation Tests ----
+    def test_cancel_reservation_success(self, mock_daos):
+        """Test successful cancellation"""
+        reservation_dao, table_dao = mock_daos
+        reservation_dao.delete.return_value = True
+        
+        service = ReservationService(reservation_dao, table_dao)
+        result = service.cancel_reservation(1)
+        
+        assert result is True
+        reservation_dao.delete.assert_called_once_with(1)
+
+    def test_cancel_non_existent_reservation(self, mock_daos):
+        """Test cancelling non-existent reservation"""
+        reservation_dao, table_dao = mock_daos
+        reservation_dao.delete.return_value = False
+        
+        service = ReservationService(reservation_dao, table_dao)
+        result = service.cancel_reservation(99)
+        
+        assert result is False
+        reservation_dao.delete.assert_called_once_with(99)
+
+    # ---- Availability Tests ----
+    def test_get_available_tables(self, mock_daos):
+        """Test getting available tables"""
+        reservation_dao, table_dao = mock_daos
+        table_dao.find_all.return_value = [
+            MagicMock(id=1, capacity=4),
+            MagicMock(id=2, capacity=4),
+            MagicMock(id=3, capacity=6)
+        ]
+        reservation_dao.find_all.return_value = [
+            MagicMock(table_id=1, time="2023-12-01 14:00:00")
+        ]
+        
+        service = ReservationService(reservation_dao, table_dao)
+        result = service.get_available_tables("2023-12-01 14:00:00", 4)
+        
+        assert len(result) == 2  # Should exclude table 1 which is reserved
+        assert all(t['capacity'] >= 4 for t in result)
+        assert all(t['id'] in [2, 3] for t in result)
+
+    def test_get_available_tables_no_reservations(self, mock_daos):
+        """Test availability when no reservations exist"""
+        reservation_dao, table_dao = mock_daos
+        table_dao.find_all.return_value = [
+            MagicMock(id=1, capacity=4),
+            MagicMock(id=2, capacity=4)
+        ]
+        reservation_dao.find_all.return_value = []  # No reservations
+        
+        service = ReservationService(reservation_dao, table_dao)
+        result = service.get_available_tables("2023-12-01 14:00:00", 4)
+        
+        assert len(result) == 2  # All tables available
+
+    # ---- Edge Cases ----
+
+    def test_create_reservation_min_people(self, mock_daos):
+        """Test reservation with minimum people count (1)"""
+        reservation_dao, table_dao = mock_daos
+        table_dao.find.return_value = MagicMock(capacity=4)
+        reservation_dao.save.return_value = MagicMock(people_count=1)
+        
+        service = ReservationService(reservation_dao, table_dao)
+        result = service.create_reservation(
+            table_id=1,
+            customer_name="Solo Customer",
+            people_count=1,
+            time="2023-12-01 14:00:00"
+        )
+        
+        assert result is not None
+        assert result.people_count == 1

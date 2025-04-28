@@ -1,22 +1,19 @@
-class OrderRequestDTO:
-    # Attributes:
-    # - items: list[str] - coffee item names
-    # - size: str - coffee size
-    # - user_id: int - user placing the order
+from pydantic import BaseModel, Field
+from typing import List
 
-    def __init__(self, items, size, user_id):
-        self.items = items
-        self.size = size
-        self.user_id = user_id
+class OrderRequestDTO(BaseModel):
+    """
+    DTO for creating a new order.
+    """
+    items: List[str] = Field(..., description="List of coffee item names")
+    size: str = Field(..., description="Coffee size (e.g., Small, Medium, Large)")
+    user_id: int = Field(..., description="ID of the user placing the order")
 
 
-class ModifyOrderRequestDTO:
-    # Attributes:
-    # - order_id: int - existing order ID
-    # - items: list[str] - updated items
-    # - size: str - updated size
-
-    def __init__(self, order_id, items, size):
-        self.order_id = order_id
-        self.items = items
-        self.size = size
+class ModifyOrderRequestDTO(BaseModel):
+    """
+    DTO for modifying an existing order.
+    """
+    order_id: int = Field(..., description="ID of the existing order")
+    items: List[str] = Field(..., description="Updated list of coffee item names")
+    size: str = Field(..., description="Updated coffee size (e.g., Small, Medium, Large)")

@@ -1,10 +1,9 @@
-class OrderResponseDTO:
-    # Attributes:
-    # - order_id: int - order ID
-    # - status: str - order status
-    # - message: str - optional confirmation message
+from pydantic import BaseModel, Field
 
-    def __init__(self, order_id, status, message):
-        self.order_id = order_id
-        self.status = status
-        self.message = message
+class OrderResponseDTO(BaseModel):
+    """
+    DTO for order responses.
+    """
+    order_id: int = Field(..., description="Order ID")
+    status: str = Field(..., description="Order status")
+    message: str = Field(..., description="Optional confirmation message")

@@ -58,6 +58,20 @@ class TestUserService(unittest.TestCase):
         self.assertEqual(result, users)
         self.mock_user_dao.findAll.assert_called_once()
 
+    def test_get_all_users_no_users(self):
+        """
+        Test retrieving all users when no users exist.
+        """
+        # Arrange
+        self.mock_user_dao.findAll.return_value = []
+
+        # Act
+        result = self.user_service.get_all_users()
+
+        # Assert
+        self.assertEqual(result, [])
+        self.mock_user_dao.findAll.assert_called_once()
+    
     def test_create_user(self):
         """
         Test creating a new user.
@@ -72,6 +86,22 @@ class TestUserService(unittest.TestCase):
 
         # Assert
         self.assertEqual(result, saved_user)
+
+    def test_create_user_duplicate_username(self):
+        """
+        Test creating a user with a duplicate username.
+        """
+        # Arrange
+        existing_user = User(user_id=1, username="john_doe", email="john@example.com")
+        self.mock_user_dao.findAll.return_value = [existing_user]
+
+        # Act
+        result = self.user_service.create_user("john_doe", "john2@example.com")
+
+        # Assert
+        self.assertIsNone(result)
+        self.mock_user_dao.findAll.assert_called_once()
+        self.mock_user_dao.save.assert_not_called()
 
     def test_update_user_success(self):
         """
@@ -126,6 +156,10 @@ class TestUserService(unittest.TestCase):
         """
         Test deleting a user by ID.
         """
+        # Arrange
+        user = User(user_id=1, username="john_doe", email="john@example.com")
+        self.mock_user_dao.find.return_value = user
+
         # Act
         self.user_service.delete_user(1)
 

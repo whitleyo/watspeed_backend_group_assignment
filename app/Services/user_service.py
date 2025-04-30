@@ -45,6 +45,13 @@ class UserService:
         Returns:
             User: The created user object.
         """
+        # Check if the username already exists
+        all_users = self.user_dao.findAll()
+        for user in all_users:
+            if user.username == username:
+                return None  # Username already exists
+        
+        # Create a new user
         new_user = User(user_id=0, username=username, email=email)
         return self.user_dao.save(0, new_user)
 

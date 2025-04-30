@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from injector import inject
 from ..Services.menu_service import MenuService
 from ..domain.menu_item import MenuItem
+from ..mappers.menu_mapper import menu_item_to_response, menu_list_to_response
 
 bp = Blueprint('menu', __name__, url_prefix='/menu')
 
@@ -9,8 +10,10 @@ bp = Blueprint('menu', __name__, url_prefix='/menu')
 @bp.route('/', methods=['GET'])
 def get_all_menu_items(menu_service: MenuService):
     """Retrieve all menu items."""
-    menu_items = menu_service.get_all_menu_items()
-    return jsonify([item.dict() for item in menu_items])  # Convert DTOs to JSON
+    menu_items = menu_service.get_all_menu_items() # Convert DTOs to dicts
+    response = menu_list_to_response(menu_items)
+    response_converted = [item.model_dump() for item in response]
+    return jsonify(response_converted)  # Convert DTOs to JSON
 
 @inject
 @bp.route('/<int:item_id>', methods=['GET'])
@@ -20,8 +23,8 @@ def get_menu_item(menu_service: MenuService, item_id: int):
     
     if not menu_item:
         return jsonify({'error': 'Menu item not found'}), 404
-    
-    return jsonify(menu_item.dict())  # Convert DTO to JSON
+    response = menu_item_to_response(menu_item).model_dump()
+    return jsonify(response)  # Convert DTO to JSON
 
 @inject
 @bp.route('/', methods=['POST'])
@@ -41,7 +44,8 @@ def create_menu_item(menu_service: MenuService):
     )
     
     saved_item = menu_service.add_or_update_menu_item(0, new_item)
-    return jsonify(saved_item.dict()), 201
+    response = menu_item_to_response(saved_item).model_dump()
+    return jsonify(response), 201
 
 @inject
 @bp.route('/<int:item_id>', methods=['PUT'])
@@ -62,7 +66,8 @@ def update_menu_item(menu_service: MenuService, item_id: int):
     )
     
     saved_item = menu_service.add_or_update_menu_item(item_id, updated_item)
-    return jsonify(saved_item.dict())
+    response = menu_item_to_response(saved_item).model_dump()
+    return jsonify(response)
 
 @inject
 @bp.route('/<int:item_id>', methods=['DELETE'])

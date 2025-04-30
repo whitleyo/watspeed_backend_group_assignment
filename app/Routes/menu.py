@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from injector import inject
-from app.Services.menu_service import MenuService
-from app.domain.menu_item import MenuItem
+from ..Services.menu_service import MenuService
+from ..domain.menu_item import MenuItem
 
 bp = Blueprint('menu', __name__, url_prefix='/menu')
 

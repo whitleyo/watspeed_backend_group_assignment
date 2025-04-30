@@ -1,5 +1,5 @@
 from typing import List, Optional
-from app.domain.menu_item import MenuItem
+from ..domain.menu_item import MenuItem
 
 class MenuDAO:
     """

@@ -1,9 +1,9 @@
 import pytest
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../app/Routes")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 from flask import Flask
-from menu import menu_bp  
+from app.Routes.menu import menu_bp  
 
 @pytest.fixture
 def client():

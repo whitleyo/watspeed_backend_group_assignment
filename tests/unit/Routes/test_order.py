@@ -1,10 +1,10 @@
 import pytest
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../app/Routes")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 from flask import Flask
 
-from orders import order_bp # Adjusted import path dynamically
+from app.Routes.orders import order_bp # Adjusted import path dynamically
 
 @pytest.fixture
 def client():

@@ -10,11 +10,7 @@ order_service = OrderService(dao)
 
 @order_bp.route('', methods=['POST'])
 def order():
-    """
-    Create new order
-    Returns:
-        JSON response with status (int) and data (str) fields.
-    """
+    """Create new order"""
     data = request.get_json()
     order_dto = OrderRequestDTO(**data)
     response_dto = order_service.save_order(order_dto)

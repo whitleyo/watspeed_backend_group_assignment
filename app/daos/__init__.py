@@ -6,4 +6,4 @@ from .menu_dao import MenuDAO
 #from .shop_dao import ShopDAO
 
 #__all__ = ['TableDAO', 'ReservationDAO', 'CoffeeDAO', 'ShopDAO']
-__all__ = ['TableDAO', 'ReservationDAO', 'MenuDAO']
+__all__ = ['TableDAO', 'ReservationDAO', 'MenuDAO', 'OrderDAO']

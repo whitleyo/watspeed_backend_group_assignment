@@ -20,15 +20,15 @@ class MenuDAO(DAO):
         """Retrieve all menu items."""
         return list(self.menu_items.values())
 
-    def save(self, item_id: int, menu_item: MenuItem) -> MenuItem:
+    def save(self,  menu_item: MenuItem) -> MenuItem:
         """
         Save a new or updated menu item.
         - If `item_id == 0`, create a new item with a unique ID.
         - Otherwise, update an existing item.
         """
-        if item_id == 0:
-            item_id = self.next_id
-            self.next_id += 1
+
+        item_id = self.next_id
+        self.next_id += 1
         
         new_menu_item = MenuItem(
             id=item_id,
@@ -39,6 +39,24 @@ class MenuDAO(DAO):
         )
         self.menu_items[item_id] = new_menu_item
         return new_menu_item
+    
+    def update(self, item_id: int, menu_item: MenuItem) -> MenuItem:
+        """
+        Save a new or updated menu item.
+        - If `item_id == 0`, create a new item with a unique ID.
+        - Otherwise, update an existing item.
+        """
+        existing_menu = self.find(item_id)
+        if existing_menu is None:
+            raise ValueError(f"Menu item with ID {item_id} does not exist.")
+        else:
+            # Update the existing menu item with new values
+            existing_menu.name = menu_item.name
+            existing_menu.description = menu_item.description
+            existing_menu.sizes = menu_item.sizes
+            existing_menu.prices = menu_item.prices  
+
+        return existing_menu
 
     def delete(self, item_id: int) -> None:
         """Delete a menu item by ID; no return value."""

@@ -6,16 +6,9 @@ class DAO(ABC):
     This class defines the interface for all DAOs in the application.
     """
 
+    
     @abstractmethod
-    def getAll(self, item):
-        """
-        Create a new item in the data store.
-        :param item: The item to be created.
-        """
-        pass
-
-    @abstractmethod
-    def get(self, item_id):
+    def find(self, item_id):
         """
         Read an item from the data store by its ID.
         :param item_id: The ID of the item to be read.
@@ -23,8 +16,26 @@ class DAO(ABC):
         """
         pass
 
+
+    @abstractmethod
+    def findAll(self):
+        """
+        Create a new item in the data store.
+        :param item: The item to be created.
+        """
+        pass
+
+
     @abstractmethod
     def save(self, item):
+        """
+        Create a new item  in the data store.
+        :param item: The item to be updated.
+        """
+        pass
+
+    @abstractmethod
+    def update(self, item):
         """
         Update an existing item in the data store.
         :param item: The item to be updated.

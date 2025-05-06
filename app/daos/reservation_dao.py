@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 from ..domain.reservation import Reservation
+from .dao_abs import DAO
 
-class ReservationDAO:
+class ReservationDAO(DAO):
     def __init__(self):
         # Stub data matching your Reservation domain model
         now = datetime.now()
@@ -31,7 +32,7 @@ class ReservationDAO:
             None
         )
 
-    def find_all(self) -> List[Reservation]:
+    def findAll(self) -> List[Reservation]:
         """Get all reservations."""
         return self.reservations
 

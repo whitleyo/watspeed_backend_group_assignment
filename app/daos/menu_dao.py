@@ -1,7 +1,8 @@
 from typing import List, Optional
 from ..domain.menu_item import MenuItem
+from .dao_abs import DAO
 
-class MenuDAO:
+class MenuDAO(DAO):
     """
     Data Access Object (DAO) for managing menu items.
     """

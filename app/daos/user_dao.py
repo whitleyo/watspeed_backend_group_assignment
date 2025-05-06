@@ -1,7 +1,9 @@
 from typing import Optional, List
 from app.domain.user import User
+from .dao_abs import DAO
 
-class UserDAO:
+
+class UserDAO(DAO):
     """
     Data Access Object (DAO) for managing User entities.
     """

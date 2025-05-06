@@ -1,7 +1,9 @@
 from typing import List, Optional
 from ..domain.table import Table
+from .dao_abs import DAO
 
-class TableDAO:
+
+class TableDAO(DAO):
     def __init__(self):
         # Stub data - will be replaced with DB in Module 7
         self.tables = [
@@ -21,7 +23,7 @@ class TableDAO:
     def find(self, id: int) -> Optional[Table]:
         return next((table for table in self.tables if table.id == id), None)
 
-    def find_all(self) -> List[Table]:
+    def findAll(self) -> List[Table]:
         return self.tables
 
     def find_by_shop(self, shop_id: int) -> List[Table]:

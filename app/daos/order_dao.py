@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import List, Optional
 from ..domain.order import Order
-class OrderDAO:
+from .dao_abs import DAO
+
+class OrderDAO(DAO):
     def __init__(self):
         self.orders = {}  # Simulated database with order_id as the key
         self.next_id = 1  # Simulated ID generator

@@ -133,9 +133,9 @@ class ReservationService:
         Returns:
             List of table dictionaries with id and capacity
         """
-        all_tables = self.table_dao.find_all()
+        all_tables = self.table_dao.findAll()
         reserved_tables = [
-            r.table_id for r in self.reservation_dao.find_all() 
+            r.table_id for r in self.reservation_dao.findAll() 
             if r.time == time
         ]
         

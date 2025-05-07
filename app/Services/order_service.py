@@ -38,7 +38,7 @@ class OrderService:
         """
         # effectively just creates a new order
         order = order_request_to_domain(order_dto)
-        saved_order = self.dao.save(order.id, order)
+        saved_order = self.dao.save(order)
         return order_to_response(saved_order, "Order saved successfully")
 
     def modify_order(self, modify_dto: ModifyOrderRequestDTO) -> Optional[OrderResponseDTO]:
@@ -52,7 +52,7 @@ class OrderService:
         existing_order = self.dao.find(modify_dto.order_id)
         if existing_order:
             updated_order = modify_order_dto_to_domain(modify_dto, existing_order)
-            saved_order = self.dao.save(updated_order.id, updated_order)
+            saved_order = self.dao.update(updated_order.id, updated_order)
             return order_to_response(saved_order, "Order modified successfully")
         return None
 

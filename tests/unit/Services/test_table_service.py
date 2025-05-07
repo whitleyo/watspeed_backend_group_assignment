@@ -41,13 +41,13 @@ class TestTableService:
 
     def test_get_all_tables(self, mock_dao, sample_tables):
         """Test getting all tables"""
-        mock_dao.find_all.return_value = sample_tables
+        mock_dao.findAll.return_value = sample_tables
         service = TableService(mock_dao)
         result = service.get_all_tables()
         
         assert len(result) == 3
         assert isinstance(result[0], Table)
-        mock_dao.find_all.assert_called_once()
+        mock_dao.findAll.assert_called_once()
 
     # ---- Shop-Specific Tests ----
     def test_get_tables_by_shop(self, mock_dao, sample_tables):
@@ -112,9 +112,9 @@ class TestTableService:
 
     def test_empty_tables_list(self, mock_dao):
         """Test when no tables exist"""
-        mock_dao.find_all.return_value = []
+        mock_dao.findAll.return_value = []
         service = TableService(mock_dao)
         result = service.get_all_tables()
         
         assert len(result) == 0
-        mock_dao.find_all.assert_called_once()
+        mock_dao.findAll.assert_called_once()

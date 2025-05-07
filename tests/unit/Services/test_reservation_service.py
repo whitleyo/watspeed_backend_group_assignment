@@ -163,12 +163,12 @@ class TestReservationService:
     def test_get_available_tables(self, mock_daos):
         """Test getting available tables"""
         reservation_dao, table_dao = mock_daos
-        table_dao.find_all.return_value = [
+        table_dao.findAll.return_value = [
             MagicMock(id=1, capacity=4),
             MagicMock(id=2, capacity=4),
             MagicMock(id=3, capacity=6)
         ]
-        reservation_dao.find_all.return_value = [
+        reservation_dao.findAll.return_value = [
             MagicMock(table_id=1, time="2023-12-01 14:00:00")
         ]
         
@@ -182,11 +182,11 @@ class TestReservationService:
     def test_get_available_tables_no_reservations(self, mock_daos):
         """Test availability when no reservations exist"""
         reservation_dao, table_dao = mock_daos
-        table_dao.find_all.return_value = [
+        table_dao.findAll.return_value = [
             MagicMock(id=1, capacity=4),
             MagicMock(id=2, capacity=4)
         ]
-        reservation_dao.find_all.return_value = []  # No reservations
+        reservation_dao.findAll.return_value = []  # No reservations
         
         service = ReservationService(reservation_dao, table_dao)
         result = service.get_available_tables("2023-12-01 14:00:00", 4)

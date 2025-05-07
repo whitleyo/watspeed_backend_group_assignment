@@ -32,8 +32,8 @@ class OrderDAO(DAO):
         else:
             # Update the existing order with new values
         
-            existing_order.menu_items = order.menu_items
-            existing_order.total_price = order.total_price
+            existing_order.items = order.items
+            existing_order.size = order.size
             existing_order.status = order.status
             existing_order.timestamp = now.strftime("%Y-%m-%d %H:%M:%S")  # Timestamp
               

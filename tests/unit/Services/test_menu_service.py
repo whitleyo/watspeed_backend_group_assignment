@@ -18,7 +18,7 @@ def sample_menu_item(menu_dao):
         sizes=["Small", "Medium", "Large"],
         prices={"Small": 2.5, "Medium": 3.0, "Large": 3.5}
     )
-    return menu_dao.save(0, item)
+    return menu_dao.save(item)
 
 @pytest.fixture
 def sample_menu_item2(menu_dao):
@@ -30,7 +30,7 @@ def sample_menu_item2(menu_dao):
         sizes=["Small", "Medium", "Large"],
         prices={"Small": 2.5, "Medium": 3.0, "Large": 3.5}
     )
-    return menu_dao.save(0, item)
+    return menu_dao.save(item)
 
 # ---- Retrieval Tests ----
 def test_get_menu_item_success(menu_dao, sample_menu_item):
@@ -68,7 +68,7 @@ def test_create_menu_item(menu_dao, sample_menu_item):
         sizes=["Medium", "Large"],
         prices={"Medium": 4.0, "Large": 4.5}
     )
-    result = service.add_or_update_menu_item(0, new_item)
+    result = service.add_menu_item(new_item)
 
     assert result.name == "Latte"
     assert result.id == 2  # Ensures auto-incrementing ID
@@ -85,7 +85,7 @@ def test_update_existing_menu_item(menu_dao, sample_menu_item):
         prices={"Small": 2.8, "Medium": 3.3}
     )
 
-    result = service.add_or_update_menu_item(sample_menu_item.id, updated_item)
+    result = service.update_menu_item(sample_menu_item.id, updated_item)
 
     assert result.name == "Updated Espresso"
     assert result.description == "Stronger coffee"

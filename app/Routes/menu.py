@@ -43,7 +43,7 @@ def create_menu_item(menu_service: MenuService):
         prices=data['prices']
     )
     
-    saved_item = menu_service.add_or_update_menu_item(0, new_item)
+    saved_item = menu_service.add_menu_item(0, new_item)
     response = menu_item_to_response(saved_item).model_dump()
     return jsonify(response), 201
 
@@ -65,7 +65,7 @@ def update_menu_item(menu_service: MenuService, item_id: int):
         prices=data.get('prices', existing_item.prices)
     )
     
-    saved_item = menu_service.add_or_update_menu_item(item_id, updated_item)
+    saved_item = menu_service.update_menu_item(item_id, updated_item)
     response = menu_item_to_response(saved_item).model_dump()
     return jsonify(response)
 

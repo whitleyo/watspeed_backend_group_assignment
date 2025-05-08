@@ -1,7 +1,9 @@
 from typing import Optional, List
 from app.domain.user import User
+from .dao_abs import DAO
 
-class UserDAO:
+
+class UserDAO(DAO):
     """
     Data Access Object (DAO) for managing User entities.
     """
@@ -37,7 +39,7 @@ class UserDAO:
         """
         return self.users
 
-    def save(self, user_id: int, user: User) -> User:
+    def save(self, user: User) -> User:
         """
         Save the object with the given ID. If ID is zero, create a new object.
 
@@ -48,19 +50,34 @@ class UserDAO:
         Returns:
             User: The saved user object with a non-zero ID.
         """
-        if user_id == 0:
-            # Create a new user
-            user.user_id = self.next_id
-            self.users.append(user)
-            self.next_id += 1
-        else:
-            # Update an existing user
-            existing_user = self.find(user_id)
-            if existing_user:
-                existing_user.username = user.username
-                existing_user.email = user.email
-                existing_user.password = user.password
+    
+        # Create a new user
+        user.user_id = self.next_id
+        self.users.append(user)
+        self.next_id += 1
+       
+    
+           
         return user
+    
+    def update (self, user_id: int, user: User) -> User:
+        """
+        Save the object with the given ID. If ID is zero, create a new object.
+
+        Args:
+            user_id (int): The ID of the user to save.
+            user (User): The user object to save.
+
+        Returns:
+            User: The saved user object with a non-zero ID.
+        """
+      
+        existing_user = self.find(user_id)
+        if existing_user:
+            existing_user.username = user.username
+            existing_user.email = user.email
+            existing_user.password = user.password
+        return existing_user
 
     def delete(self, user_id: int) -> None:
         """

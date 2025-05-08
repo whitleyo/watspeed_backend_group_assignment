@@ -1,7 +1,9 @@
 from typing import List, Optional
 from ..domain.table import Table
+from .dao_abs import DAO
 
-class TableDAO:
+
+class TableDAO(DAO):
     def __init__(self):
         # Stub data - will be replaced with DB in Module 7
         self.tables = [
@@ -21,23 +23,32 @@ class TableDAO:
     def find(self, id: int) -> Optional[Table]:
         return next((table for table in self.tables if table.id == id), None)
 
-    def find_all(self) -> List[Table]:
+    def findAll(self) -> List[Table]:
         return self.tables
 
     def find_by_shop(self, shop_id: int) -> List[Table]:
         return [table for table in self.tables if table.shop_id == shop_id]
 
     def save(self, table: Table) -> Table:
-        if table.id == 0:  # New table
-            new_id = max(t.id for t in self.tables) + 1
-            table.id = new_id
-            self.tables.append(table)
-        else:  # Update existing
-            existing = self.find(table.id)
-            if existing:
-                existing.shop_id = table.shop_id
-                existing.capacity = table.capacity
+        # New table
+        new_id = max(t.id for t in self.tables) + 1
+        table.id = new_id
+        self.tables.append(table)
+       
         return table
+    
+    def update(self,table_id: int, table: Table) -> Table:
+        
+        #Update existing
+        existing_table = self.find(table_id)   
+        if existing_table is None:
+            raise ValueError(f"Table with ID {table_id} does not exist.")
+        else:
+            # Update the existing table with new values
+            existing_table.shop_id = table.shop_id
+            existing_table.capacity = table.capacity
+            
+        return existing_table
 
     def delete(self, id: int) -> None:
         self.tables = [table for table in self.tables if table.id != id]

@@ -23,7 +23,7 @@ class TableService:
         """
         Get all tables.
         """
-        return self.table_dao.find_all()
+        return self.table_dao.findAll()
     
     def get_tables_by_shop(self, shop_id: int) -> List[Table]:
         """

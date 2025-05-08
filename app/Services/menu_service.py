@@ -22,10 +22,15 @@ class MenuService:
         """Retrieve all menu items and convert them to DTOs."""
         menu_items = self.menu_dao.findAll()
         return menu_list_to_response(menu_items)
+    
+    def add_menu_item(self, menu_item: MenuItem) -> MenuItemResponseDTO:
+        """Add a new menu item and return response DTO."""
+        saved_item = self.menu_dao.save(menu_item)
+        return menu_item_to_response(saved_item)
 
-    def add_or_update_menu_item(self, item_id: int, menu_item: MenuItem) -> MenuItemResponseDTO:
-        """Add or update a menu item and return response DTO."""
-        saved_item = self.menu_dao.save(item_id, menu_item)
+    def update_menu_item(self, item_id: int, menu_item: MenuItem) -> MenuItemResponseDTO:
+        """update a menu item and return response DTO."""
+        saved_item = self.menu_dao.update(item_id, menu_item)
         return menu_item_to_response(saved_item)
 
     def remove_menu_item(self, item_id: int) -> None:

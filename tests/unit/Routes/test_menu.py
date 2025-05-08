@@ -66,7 +66,7 @@ class TestMenuRoutes:
     # ---- Creation & Updating Tests ----
     def test_create_menu_item_success(self, sample_menu_item):
         """Test creating a new menu item."""
-        self.mock_service.add_or_update_menu_item.return_value = sample_menu_item
+        self.mock_service.add_menu_item.return_value = sample_menu_item
 
         data = {
             "name": "Latte",
@@ -82,7 +82,7 @@ class TestMenuRoutes:
     def test_update_menu_item_success(self, sample_menu_item):
         """Test updating an existing menu item."""
         self.mock_service.get_menu_item.return_value = sample_menu_item
-        self.mock_service.add_or_update_menu_item.return_value = sample_menu_item
+        self.mock_service.update_menu_item.return_value = sample_menu_item
 
         data = {"name": "Updated Cappuccino", "description": "Stronger coffee"}
         res = self.client.put('/menu/1', json=data)

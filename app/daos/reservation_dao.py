@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 from ..domain.reservation import Reservation
+from .dao_abs import DAO
 
-class ReservationDAO:
+class ReservationDAO(DAO):
     def __init__(self):
         # Stub data matching your Reservation domain model
         now = datetime.now()
@@ -31,7 +32,7 @@ class ReservationDAO:
             None
         )
 
-    def find_all(self) -> List[Reservation]:
+    def findAll(self) -> List[Reservation]:
         """Get all reservations."""
         return self.reservations
 
@@ -51,18 +52,30 @@ class ReservationDAO:
         Save a reservation (create or update).
         Returns the saved reservation with updated ID if new.
         """
-        if reservation.reservation_id == 0:  # New reservation
-            reservation.reservation_id = self.next_id
-            self.next_id += 1
-            self.reservations.append(reservation)
-        else:  # Update existing
-            existing = self.find(reservation.reservation_id)
-            if existing:
-                existing.table_id = reservation.table_id
-                existing.customer_name = reservation.customer_name
-                existing.people_count = reservation.people_count
-                existing.time = reservation.time
+        # New reservation
+        reservation.reservation_id = self.next_id
+        self.next_id += 1
+        self.reservations.append(reservation)
+        
         return reservation
+    
+    def update(self, reservation: Reservation) -> Reservation:
+        """
+        Save a reservation (create or update).
+        Returns the saved reservation with updated ID if new.
+        """
+
+       
+        existing_reservation = self.find(reservation.reservation_id)
+        if existing_reservation is None:
+            raise ValueError(f"Reservation with ID {reservation.reservation_id} does not exist.")
+        else:
+            # Update the existing reservation with new values
+            existing_reservation.table_id = reservation.table_id
+            existing_reservation.customer_name = reservation.customer_name  
+            existing_reservation.people_count = reservation.people_count
+            existing_reservation.time = reservation.time  
+        return existing_reservation
 
     def delete(self, reservation_id: int) -> bool:
         """

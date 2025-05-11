@@ -1,54 +1,65 @@
-from typing import List, Optional
 from ..domain.table import Table
 from .dao_abs import DAO
-
+from typing import List, Optional
+from sqlalchemy.orm import Session
+from app.domain.table import Table
 
 class TableDAO(DAO):
-    def __init__(self):
-        # Stub data - will be replaced with DB in Module 7
-        self.tables = [
-            Table(id=1, shop_id=1, capacity=4),
-            Table(id=2, shop_id=1, capacity=4),
-            Table(id=3, shop_id=1, capacity=4),
-            Table(id=4, shop_id=1, capacity=6),
-            Table(id=5, shop_id=1, capacity=6),
-            Table(id=6, shop_id=1, capacity=6),
-            # Second location tables
-            Table(id=7, shop_id=2, capacity=4),
-            Table(id=8, shop_id=2, capacity=4),
-            Table(id=9, shop_id=2, capacity=4),
-            Table(id=10, shop_id=2, capacity=4),
-        ]
+    """
+    Data Access Object (DAO) for managing tables using SQLAlchemy.
+    """
+
+    def __init__(self, session: Session):
+        """Initialize with an active database session."""
+        self.session = session
 
     def find(self, id: int) -> Optional[Table]:
-        return next((table for table in self.tables if table.id == id), None)
+        """Retrieve a table by its ID."""
+        return self.session.get(Table, id)
 
     def findAll(self) -> List[Table]:
-        return self.tables
+        """Retrieve all tables."""
+        return self.session.query(Table).all()
 
-    def find_by_shop(self, shop_id: int) -> List[Table]:
-        return [table for table in self.tables if table.shop_id == shop_id]
+    def find_by_location(self, location: str) -> List[Table]:
+        """Retrieve tables by location."""
+        return self.session.query(Table).filter(Table.location == location).all()
 
     def save(self, table: Table) -> Table:
-        # New table
-        new_id = max(t.id for t in self.tables) + 1
-        table.id = new_id
-        self.tables.append(table)
-       
-        return table
-    
-    def update(self,table_id: int, table: Table) -> Table:
-        
-        #Update existing
-        existing_table = self.find(table_id)   
-        if existing_table is None:
+        """Save a new table."""
+        try:
+            self.session.add(table)
+            self.session.commit()
+            self.session.refresh(table)
+            return table
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Error saving table: {e}")
+
+    def update(self, table_id: int, updated_table: Table) -> Table:
+        """Update an existing table."""
+        table = self.session.get(Table, table_id)
+        if not table:
             raise ValueError(f"Table with ID {table_id} does not exist.")
-        else:
-            # Update the existing table with new values
-            existing_table.shop_id = table.shop_id
-            existing_table.capacity = table.capacity
-            
-        return existing_table
+
+        table.capacity = updated_table.capacity
+        table.location = updated_table.location
+
+        try:
+            self.session.commit()
+            self.session.refresh(table)
+            return table
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Error updating table: {e}")
 
     def delete(self, id: int) -> None:
-        self.tables = [table for table in self.tables if table.id != id]
+        """Delete a table by ID."""
+        table = self.session.get(Table, id)
+        if table:
+            try:
+                self.session.delete(table)
+                self.session.commit()
+            except Exception as e:
+                self.session.rollback()
+                raise ValueError(f"Error deleting table: {e}")

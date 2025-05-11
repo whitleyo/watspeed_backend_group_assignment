@@ -1,91 +1,65 @@
-from typing import Optional, List
 from app.domain.user import User
 from .dao_abs import DAO
-
+from typing import List, Optional
+from sqlalchemy.orm import Session
 
 class UserDAO(DAO):
     """
-    Data Access Object (DAO) for managing User entities.
+    Data Access Object (DAO) for managing User entities using SQLAlchemy.
     """
 
-    def __init__(self):
-        # In-memory storage for simplicity (replace with database logic in production)
-        self.users: List[User] = [
-            User(1, "ilovecoffee", "cafegirl@gmail.com"),
-            User(2, "ilovetea", "teagirl@hotmail.com")]
-        self.next_id: int = 3  # Auto-incrementing ID for new users
+    def __init__(self, session: Session):
+        """Initialize with an active database session."""
+        self.session = session
 
     def find(self, user_id: int) -> Optional[User]:
-        """
-        Return the object with the specified ID.
-
-        Args:
-            user_id (int): The ID of the user.
-
-        Returns:
-            Optional[User]: The user object if found, otherwise None.
-        """
-        for user in self.users:
-            if user.user_id == user_id:
-                return user
-        return None
+        """Retrieve a user by their ID."""
+        return self.session.get(User, user_id)
 
     def findAll(self) -> List[User]:
-        """
-        Return an array of all objects.
+        """Retrieve all users."""
+        return self.session.query(User).all()
 
-        Returns:
-            List[User]: A list of all user objects.
-        """
-        return self.users
+    def find_by_username(self, username: str) -> Optional[User]:
+        """Retrieve a user by their username."""
+        return self.session.query(User).filter(User.username == username).first()
 
     def save(self, user: User) -> User:
-        """
-        Save the object with the given ID. If ID is zero, create a new object.
+        """Save a new user."""
+        try:
+            self.session.add(user)
+            self.session.commit()
+            self.session.refresh(user)
+            return user
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Error saving user: {e}")
 
-        Args:
-            user_id (int): The ID of the user to save.
-            user (User): The user object to save.
+    def update(self, user_id: int, updated_user: User) -> User:
+        """Update an existing user."""
+        user = self.session.get(User, user_id)
+        if not user:
+            raise ValueError(f"User with ID {user_id} does not exist.")
 
-        Returns:
-            User: The saved user object with a non-zero ID.
-        """
-    
-        # Create a new user
-        user.user_id = self.next_id
-        self.users.append(user)
-        self.next_id += 1
-       
-    
-           
-        return user
-    
-    def update (self, user_id: int, user: User) -> User:
-        """
-        Save the object with the given ID. If ID is zero, create a new object.
+        user.username = updated_user.username
+        user.email = updated_user.email
+        user.password = updated_user.password  # Ensure hashed password in production
 
-        Args:
-            user_id (int): The ID of the user to save.
-            user (User): The user object to save.
-
-        Returns:
-            User: The saved user object with a non-zero ID.
-        """
-      
-        existing_user = self.find(user_id)
-        if existing_user:
-            existing_user.username = user.username
-            existing_user.email = user.email
-            existing_user.password = user.password
-        return existing_user
+        try:
+            self.session.commit()
+            self.session.refresh(user)
+            return user
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Error updating user: {e}")
 
     def delete(self, user_id: int) -> None:
-        """
-        Delete the object with the given ID.
-
-        Args:
-            user_id (int): The ID of the user to delete.
-        """
-        user = self.find(user_id)
+        """Delete a user by ID."""
+        user = self.session.get(User, user_id)
         if user:
-            self.users.remove(user)
+            try:
+                self.session.delete(user)
+                self.session.commit()
+            except Exception as e:
+                self.session.rollback()
+                raise ValueError(f"Error deleting user: {e}")

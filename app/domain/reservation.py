@@ -1,33 +1,42 @@
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Integer, DateTime, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+from typing import Optional
+from datetime import datetime
 
-class Table:
-    def __init__(self, table_id: int, seats: int):
-        """
-        Initialize a table with a unique ID and number of seats.
-        Args:
-            table_id (int): Unique identifier for the table.
-            seats (int): Number of seats at the table.
-        Attributes:
-            table_id (int): Unique identifier for the table.
-            seats (int): Number of seats at the table.
-            is_reserved (bool): Reservation status of the table.
-        """
-        self.table_id = table_id
-        self.seats = seats
-        self.is_reserved = False  # Simple flag for reservation status
+Base = declarative_base()
 
-class Reservation:
-    def __init__(self, reservation_id: int, table_id: int, customer_name: str, people_count: int, time: str):
-        """
-        Initialize a reservation with a unique ID, table ID, customer name, number of people, and time.
-        Args:
-            reservation_id (int): Unique identifier for the reservation.
-            table_id (int): Unique identifier for the table being reserved.
-            customer_name (str): Name of the customer making the reservation.
-            people_count (int): Number of people for the reservation.
-            time (str): Time of the reservation (could be a datetime object).
-        """
-        self.reservation_id = reservation_id
+class Reservation(Base):
+    """
+    SQLAlchemy model for table reservations.
+    """
+    __tablename__ = "reservations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    table_id: Mapped[int] = mapped_column(Integer, ForeignKey("tables.id"), nullable=False)
+    customer_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    people_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    def __init__(
+        self,
+        table_id: int,
+        customer_name: str,
+        people_count: int,
+        time: datetime
+    ):
         self.table_id = table_id
         self.customer_name = customer_name
         self.people_count = people_count
-        self.time = time  # Could be datetime object
+        self.time = time
+
+    def to_dict(self):
+        """Convert model instance to dictionary."""
+        return {
+            "id": self.id,
+            "table_id": self.table_id,
+            "customer_name": self.customer_name,
+            "people_count": self.people_count,
+            "time": self.time.isoformat() if self.time else None
+        }
+

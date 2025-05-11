@@ -18,6 +18,7 @@ CREATE TABLE reservations (
 CREATE TABLE menu (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    description VARCHAR(255) NOT NULL,
     size VARCHAR(50) NOT NULL,
     price DECIMAL(5,2) NOT NULL
 );

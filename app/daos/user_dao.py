@@ -1,16 +1,16 @@
 from app.domain.user import User
 from .dao_abs import DAO
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from db.database import get_session
 
 class UserDAO(DAO):
     """
     Data Access Object (DAO) for managing User entities using SQLAlchemy.
     """
 
-    def __init__(self, session: Session):
+    def __init__(self):
         """Initialize with an active database session."""
-        self.session = session
+        self.session = get_session()
 
     def find(self, user_id: int) -> Optional[User]:
         """Retrieve a user by their ID."""

@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.domain.user import Base, User
-from app.services.user_service import UserService
+from app.Services.user_service import UserService
 from app.daos.user_dao import UserDAO
 
 # Test database URL

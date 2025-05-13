@@ -1,13 +1,13 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
 from ..domain.order import Order  # Assuming you have an Order domain class
 from .dao_abs import DAO
+from db.database import get_session
 
 class OrderDAO(DAO):
     """DAO for managing orders."""
 
-    def __init__(self, session: Session):
-        self.session = session
+    def __init__(self):
+        self.session = get_session()
 
     def find(self, order_id: int) -> Optional[Order]:
         """Retrieve an order by ID."""

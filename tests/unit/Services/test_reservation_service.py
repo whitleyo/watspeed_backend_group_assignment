@@ -18,7 +18,6 @@ class TestReservationService:
     def sample_reservation(self):
         """Sample reservation fixture"""
         return Reservation(
-            reservation_id=1,
             table_id=2,
             customer_name="Test Customer",
             people_count=4,

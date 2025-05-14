@@ -58,3 +58,8 @@ class ReservationDAO(DAO):
                 self.session.rollback()
                 raise ValueError(f"Error deleting reservation: {e}")
 
+    def find_by_table(self, table_id: int) -> List[Reservation]:
+        """
+        Retrieve all reservations for a specific table.
+        """
+        return self.session.query(Reservation).filter_by(table_id=table_id).all()

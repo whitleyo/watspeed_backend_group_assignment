@@ -48,6 +48,11 @@ def sample_user2(db_session):
     db_session.refresh(user)
     return user
 
+@pytest.fixture(autouse=True)
+def clean_users(db_session):
+    db_session.query(User).delete()
+    db_session.commit()
+
 # ---- Retrieval Tests ----
 def test_get_user_success(user_dao, sample_user):
     """Test fetching a user successfully."""

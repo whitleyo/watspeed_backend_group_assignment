@@ -34,13 +34,14 @@ class UserService:
         """
         return self.user_dao.findAll()
 
-    def create_user(self, username: str, email: str) -> User:
+    def create_user(self, username: str, email: str, password: str) -> User:
         """
         Create a new user.
 
         Args:
             username (str): The username of the user.
             email (str): The email address of the user.
+            password (str): The password of the user.
 
         Returns:
             User: The created user object.
@@ -52,8 +53,8 @@ class UserService:
                 return None  # Username already exists
         
         # Create a new user
-        new_user = User(user_id=0, username=username, email=email)
-        return self.user_dao.save(0, new_user)
+        new_user = User(username=username, email=email, password=password)
+        return self.user_dao.save(new_user)
 
     def update_user(self, user_id: int, username: Optional[str] = None, email: Optional[str] = None) -> Optional[User]:
         """

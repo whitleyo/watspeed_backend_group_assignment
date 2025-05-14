@@ -32,7 +32,7 @@ class TestReservationRoutes:
 
     def test_create_reservation_success(self):
         """Test successful reservation creation."""
-        self.mock_service.create_reservation.return_value = Reservation(1, 10, "John Doe", 4, "2025-04-30T19:00:00")
+        self.mock_service.create_reservation.return_value = Reservation(10, "John Doe", 4, "2025-04-30T19:00:00")
         data = {"table_id": 10, "customer_name": "John Doe", "people_count": 4, "time": "2025-04-30T19:00:00"}
         
         res = self.client.post('/reservations/', json=data)
@@ -44,7 +44,7 @@ class TestReservationRoutes:
 
     def test_get_reservation_success(self):
         """Test fetching an existing reservation."""
-        self.mock_service.get_reservation.return_value = Reservation(1, 10, "John Doe", 4, "2025-04-30T19:00:00")
+        self.mock_service.get_reservation.return_value = Reservation(10, "John Doe", 4, "2025-04-30T19:00:00")
 
         res = self.client.get('/reservations/1')
 

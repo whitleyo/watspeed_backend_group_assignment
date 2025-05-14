@@ -100,7 +100,6 @@ class TestReservationService:
         table_dao.find.return_value = MagicMock(capacity=4)
         
         updated_reservation = Reservation(
-            reservation_id=1,
             table_id=3,  # Changed table
             customer_name="Updated Customer",
             people_count=2,

@@ -28,7 +28,7 @@ def create_reservation(reservation_service: ReservationService):
         return jsonify({'error': 'Could not create reservation'}), 400
     
     return jsonify({
-        'reservation_id': reservation.reservation_id,
+        'reservation_id': reservation.id,
         'table_id': reservation.table_id,
         'customer_name': reservation.customer_name,
         'people_count': reservation.people_count,
@@ -45,7 +45,7 @@ def get_reservation(reservation_service: ReservationService, reservation_id: int
         return jsonify({'error': 'Reservation not found'}), 404
     
     return jsonify({
-        'reservation_id': reservation.reservation_id,
+        'reservation_id': reservation.id,
         'table_id': reservation.table_id,
         'customer_name': reservation.customer_name,
         'people_count': reservation.people_count,
@@ -85,7 +85,7 @@ def update_reservation(reservation_service: ReservationService, reservation_id: 
         return jsonify({'error': 'Could not update reservation'}), 400
     
     return jsonify({
-        'reservation_id': updated_reservation.reservation_id,
+        'reservation_id': updated_reservation.id,
         'table_id': updated_reservation.table_id,
         'customer_name': updated_reservation.customer_name,
         'people_count': updated_reservation.people_count,

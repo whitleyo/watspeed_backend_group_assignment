@@ -1,13 +1,13 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
 from ..domain.reservation import Reservation  # Assuming a Reservation domain class
 from .dao_abs import DAO
+from db.database import get_session
 
 class ReservationDAO(DAO):
     """DAO for managing table reservations."""
 
-    def __init__(self, session: Session):
-        self.session = session
+    def __init__(self):
+        self.session = get_session()
 
     def find(self, reservation_id: int) -> Optional[Reservation]:
         """Retrieve a reservation by ID."""

@@ -11,7 +11,7 @@ def get_all_tables(table_service: TableService):
     tables = table_service.get_all_tables()
     return jsonify([{
         'id': t.id,
-        'shop_id': t.shop_id,
+        'location': t.location,
         'capacity': t.capacity
     } for t in tables])
 
@@ -26,15 +26,15 @@ def get_table(table_service: TableService, table_id: int):
     
     return jsonify({
         'id': table.id,
-        'shop_id': table.shop_id,
+        'location': table.location,
         'capacity': table.capacity
     })
 
 @inject
-@bp.route('/shop/<int:shop_id>', methods=['GET'])
-def get_shop_tables(table_service: TableService, shop_id: int):
+@bp.route('/shop/<shop_location>', methods=['GET'])
+def get_shop_tables(table_service: TableService, shop_location: str):
     """Get all tables in a specific shop"""
-    tables = table_service.get_tables_by_shop(shop_id)
+    tables = table_service.get_tables_by_location(shop_location)
     return jsonify([{
         'id': t.id,
         'capacity': t.capacity

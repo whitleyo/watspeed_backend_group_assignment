@@ -15,6 +15,7 @@ secrets.py
 *.sqlite
 *.db
 *.sql
+/db/
 
 # IDE
 .vscode/

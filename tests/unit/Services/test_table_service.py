@@ -48,6 +48,11 @@ def sample_table2(db_session):
     db_session.refresh(table)
     return table
 
+@pytest.fixture(autouse=True)
+def clean_tables(db_session):
+    db_session.query(Table).delete()
+    db_session.commit()
+
 # ---- Retrieval Tests ----
 def test_get_table_success(table_dao, sample_table):
     """Test fetching a table successfully."""

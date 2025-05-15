@@ -29,49 +29,50 @@ class TestTableRoutes:
     def test_get_all_tables_success(self):
         """Test retrieving all tables."""
         self.mock_service.get_all_tables.return_value = [
-            Table(id=1, shop_id=101, capacity=4),
-            Table(id=2, shop_id=102, capacity=6)
+            Table(capacity=4, location="Front Street"),
+            Table(capacity=6, location="Front Street")
         ]
 
         res = self.client.get('/tables/')
+        print(res.json)
         assert res.status_code == 200
         assert len(res.json) == 2
-        assert res.json[0]["id"] == 1
         assert res.json[0]["capacity"] == 4
+        assert res.json[0]["location"] == "Front Street"
 
     def test_get_table_success(self):
         """Test retrieving a specific table."""
-        self.mock_service.get_table.return_value = Table(id=2, shop_id=102, capacity=6)
+        self.mock_service.get_table.return_value = Table(capacity=6, location="Queen Street")
 
         res = self.client.get('/tables/2')
         assert res.status_code == 200
-        assert res.json["id"] == 2
         assert res.json["capacity"] == 6
+        assert res.json["location"] == "Queen Street"
 
     def test_get_table_not_found(self):
         """Test retrieving a table that doesn't exist."""
         self.mock_service.get_table.return_value = None
 
         res = self.client.get('/tables/999')
+        print(res.json)
         assert res.status_code == 404
         assert res.json == {"error": "Table not found"}
 
     def test_get_shop_tables_success(self):
         """Test retrieving tables from a specific shop."""
-        self.mock_service.get_tables_by_shop.return_value = [
-            Table(id=3, shop_id=103, capacity=8),
-            Table(id=4, shop_id=103, capacity=2)
+        self.mock_service.get_tables_by_location.return_value = [
+            Table(capacity=8, location="Front Street"),
+            Table(capacity=6, location="Front Street")
         ]
 
-        res = self.client.get('/tables/shop/103')
+        res = self.client.get('/tables/shop/Front Street')
         assert res.status_code == 200
         assert len(res.json) == 2
-        assert res.json[0]["id"] == 3
         assert res.json[0]["capacity"] == 8
 
     def test_get_shop_tables_empty(self):
         """Test retrieving tables for a shop with no tables."""
-        self.mock_service.get_tables_by_shop.return_value = []
+        self.mock_service.get_tables_by_location.return_value = []
 
         res = self.client.get('/tables/shop/999')
         assert res.status_code == 200

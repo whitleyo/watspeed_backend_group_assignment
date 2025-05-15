@@ -1,48 +1,61 @@
-from datetime import datetime
 from typing import List, Optional
-from ..domain.order import Order
+from ..domain.order import Order  # Assuming you have an Order domain class
 from .dao_abs import DAO
+from db.database import get_session
 
 class OrderDAO(DAO):
+    """DAO for managing orders."""
+
     def __init__(self):
-        self.orders = {}  # Simulated database with order_id as the key
-        self.next_id = 1  # Simulated ID generator
+        self.session = get_session()
 
     def find(self, order_id: int) -> Optional[Order]:
-        return self.orders.get(order_id)
+        """Retrieve an order by ID."""
+        return self.session.get(Order, order_id)
 
     def findAll(self) -> List[Order]:
-        return list(self.orders.values())
+        """Retrieve all orders."""
+        return self.session.query(Order).all()
 
     def save(self, order: Order) -> Order:
-        now = datetime.now()
-         # Create new order
-        order.id = self.next_id
-        self.next_id += 1
-        order.timestamp = now.strftime("%Y-%m-%d %H:%M:%S")  # Timestamp
-        self.orders[order.id] = order
-        return order
+        """Save a new order."""
+        try:
+            self.session.add(order)
+            self.session.commit()
+            self.session.refresh(order)
+            return order
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Error saving order: {e}")
 
-    def update(self, order_id: int, order: Order) -> Order:
-        now = datetime.now()
-        # update existing order
-        existing_order = self.find(order_id)
-        if existing_order is None:
+    def update(self, order_id: int, updated_order: Order) -> Order:
+        """Update an existing order."""
+        order = self.session.get(Order, order_id)
+        if not order:
             raise ValueError(f"Order with ID {order_id} does not exist.")
-        else:
-            # Update the existing order with new values
-        
-            existing_order.items = order.items
-            existing_order.size = order.size
-            existing_order.status = order.status
-            existing_order.timestamp = now.strftime("%Y-%m-%d %H:%M:%S")  # Timestamp
-              
-        return existing_order
 
-    def delete(self, order_id: int):
-        found_order = self.find(order_id)  # Check if order exists
-        if found_order:
-            self.orders.pop(order_id, None)
-            return True
-        else:
-            return False
+        order.customer_name = updated_order.customer_name
+        order.menu_id = updated_order.menu_id
+        order.quantity = updated_order.quantity
+        order.order_time = updated_order.order_time
+
+        try:
+            self.session.commit()
+            self.session.refresh(order)
+            return order
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Error updating order: {e}")
+
+    def delete(self, order_id: int) -> None:
+        """Delete an order by ID."""
+        order = self.session.get(Order, order_id)
+        if order:
+            try:
+                self.session.delete(order)
+                self.session.commit()
+            except Exception as e:
+                self.session.rollback()
+                raise ValueError(f"Error deleting order: {e}")
+
+    

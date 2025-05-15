@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.domain.user import Base, User
-from app.services.user_service import UserService
+from app.Services.user_service import UserService
 from app.daos.user_dao import UserDAO
 
 # Test database URL
@@ -47,6 +47,11 @@ def sample_user2(db_session):
     db_session.commit()
     db_session.refresh(user)
     return user
+
+@pytest.fixture(autouse=True)
+def clean_users(db_session):
+    db_session.query(User).delete()
+    db_session.commit()
 
 # ---- Retrieval Tests ----
 def test_get_user_success(user_dao, sample_user):
@@ -102,9 +107,8 @@ def test_create_user_duplicate_username(user_dao, sample_user):
 def test_update_user_success(user_dao, sample_user):
     """Test updating an existing user's details."""
     service = UserService(user_dao)
-    updated_user = User(username="updated_user", email="updated@example.com", password="new_password")
 
-    result = service.update_user(sample_user.id, updated_user)
+    result = service.update_user(sample_user.id, username="updated_user", email="updated@example.com")
 
     assert result.username == "updated_user"
     assert result.email == "updated@example.com"

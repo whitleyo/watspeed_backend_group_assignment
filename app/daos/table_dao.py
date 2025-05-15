@@ -1,17 +1,21 @@
 from ..domain.table import Table
 from .dao_abs import DAO
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from db.database import get_session
 from app.domain.table import Table
+from sqlalchemy.orm import Session
 
 class TableDAO(DAO):
     """
     Data Access Object (DAO) for managing tables using SQLAlchemy.
     """
 
-    def __init__(self, session: Session):
-        """Initialize with an active database session."""
-        self.session = session
+    def __init__(self, session: Optional[Session] = None):
+        if session is None:
+            self.session = get_session()
+        else:
+            self.session = session
+
 
     def find(self, id: int) -> Optional[Table]:
         """Retrieve a table by its ID."""

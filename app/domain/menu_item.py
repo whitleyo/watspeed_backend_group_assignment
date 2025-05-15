@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, DECIMAL
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 # from ..domain.order import Order
 from typing import List, Optional
 

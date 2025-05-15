@@ -1,7 +1,7 @@
 from typing import List, Optional
 from ..domain.menu_item import MenuItem
 from .dao_abs import DAO
-from sqlalchemy.orm import Session
+from db.database import get_session
 from typing import List, Optional
 from app.domain.menu_item import MenuItem
 
@@ -10,9 +10,9 @@ class MenuDAO(DAO):
     Data Access Object (DAO) for managing menu items using SQLAlchemy with an active session.
     """
 
-    def __init__(self, session: Session):
+    def __init__(self):
         """Initialize with an active database session."""
-        self.session = session
+        self.session = get_session()
 
     def find(self, item_id: int) -> Optional[MenuItem]:
         """Retrieve a menu item by its ID."""

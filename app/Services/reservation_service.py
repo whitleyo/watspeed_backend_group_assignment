@@ -55,7 +55,6 @@ class ReservationService:
                 
         # Create and save new reservation
         new_reservation = Reservation(
-            reservation_id=0,  # Will be assigned by DAO
             table_id=table_id,
             customer_name=customer_name,
             people_count=people_count,

@@ -80,7 +80,7 @@ class UserService:
         if email:
             user.email = email
 
-        return self.user_dao.save(user_id, user)
+        return self.user_dao.save(user)
 
     def delete_user(self, user_id: int) -> None:
         """

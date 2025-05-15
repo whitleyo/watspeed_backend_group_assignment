@@ -107,9 +107,8 @@ def test_create_user_duplicate_username(user_dao, sample_user):
 def test_update_user_success(user_dao, sample_user):
     """Test updating an existing user's details."""
     service = UserService(user_dao)
-    updated_user = User(username="updated_user", email="updated@example.com", password="new_password")
 
-    result = service.update_user(sample_user.id, updated_user)
+    result = service.update_user(sample_user.id, username="updated_user", email="updated@example.com")
 
     assert result.username == "updated_user"
     assert result.email == "updated@example.com"

@@ -1,10 +1,11 @@
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Integer, DECIMAL
-from sqlalchemy.orm import declarative_base
+# from sqlalchemy.orm import declarative_base
+from app.domain.base import Base
 from sqlalchemy import UniqueConstraint
 # from ..domain.order import Order
 
-Base = declarative_base()
+# Base = declarative_base()
 
 class MenuItem(Base):
     """

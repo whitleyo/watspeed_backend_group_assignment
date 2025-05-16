@@ -1,10 +1,16 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Integer, DateTime, ForeignKey
-from sqlalchemy.orm import declarative_base
-from typing import Optional
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Table, Column, Integer, String, DateTime, ForeignKey
+from app.domain.base import Base
+from typing import Optional, List
 from datetime import datetime
 
-Base = declarative_base()
+# Association table linking orders to multiple menu items
+order_menu_items = Table(
+    "order_menu_items",
+    Base.metadata,
+    Column("order_id", Integer, ForeignKey("orders.id"), primary_key=True),
+    Column("menu_id", Integer, ForeignKey("menu.id"), primary_key=True),
+)
 
 class Order(Base):
     """
@@ -14,19 +20,24 @@ class Order(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     customer_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    menu_id: Mapped[int] = mapped_column(Integer, ForeignKey("menu.id"), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
     order_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    # Many-to-Many relationship with MenuItems
+    menu_items: Mapped[List["MenuItem"]] = relationship(
+        "MenuItem", secondary=order_menu_items, back_populates="orders"
+    )
 
     def __init__(
         self, 
         customer_name: str, 
-        menu_id: int, 
+        menu_items: List["MenuItem"], 
         quantity: int, 
         order_time: Optional[datetime] = None
     ):
         self.customer_name = customer_name
-        self.menu_id = menu_id
+        self.menu_items = menu_items  # Store multiple menu items in a list
         self.quantity = quantity
         self.order_time = order_time if order_time else datetime.now()
 
@@ -35,8 +46,9 @@ class Order(Base):
         return {
             "id": self.id,
             "customer_name": self.customer_name,
-            "menu_id": self.menu_id,
+            "menu_items": [item.to_dict() for item in self.menu_items],  # Get all linked menu items
             "quantity": self.quantity,
+            "status": self.status,
             "order_time": self.order_time.isoformat() if self.order_time else None
         }
 

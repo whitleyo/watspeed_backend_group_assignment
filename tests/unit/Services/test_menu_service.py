@@ -1,7 +1,8 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.domain.menu_item import MenuItem, Base
+from app.domain.base import Base
+from app.domain.menu_item import MenuItem
 from app.Services.menu_service import MenuService
 from app.daos.menu_dao import MenuDAO
 

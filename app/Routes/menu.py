@@ -19,11 +19,10 @@ def get_all_menu_items(menu_service: MenuService):
 @bp.route('/<int:item_id>', methods=['GET'])
 def get_menu_item(menu_service: MenuService, item_id: int):
     """Retrieve a specific menu item."""
-    menu_item = menu_service.get_menu_item(item_id)
-    
-    if not menu_item:
+    menu_item_response = menu_service.get_menu_item(item_id)
+    if not menu_item_response:
         return jsonify({'error': 'Menu item not found'}), 404
-    response = menu_item_to_response(menu_item).model_dump()
+    response = menu_item_response.model_dump()
     return jsonify(response)  # Convert DTO to JSON
 
 @inject
@@ -32,18 +31,17 @@ def create_menu_item(menu_service: MenuService):
     """Create a new menu item."""
     data = request.get_json()
     
-    if not all(key in data for key in ['name', 'description', 'sizes', 'prices']):
+    if not all(key in data for key in ['name', 'description', 'size', 'price']):
         return jsonify({'error': 'Missing required fields'}), 400
     
     new_item = MenuItem(
-        id=0,  # ID 0 ensures a new item is created
         name=data['name'],
         description=data['description'],
-        sizes=data['sizes'],
-        prices=data['prices']
+        size=data['size'],
+        price=data['price']
     )
     
-    saved_item = menu_service.add_menu_item(0, new_item)
+    saved_item = menu_service.add_menu_item(new_item)
     response = menu_item_to_response(saved_item).model_dump()
     return jsonify(response), 201
 
@@ -58,11 +56,10 @@ def update_menu_item(menu_service: MenuService, item_id: int):
         return jsonify({'error': 'Menu item not found'}), 404
 
     updated_item = MenuItem(
-        id=item_id,
         name=data.get('name', existing_item.name),
         description=data.get('description', existing_item.description),
-        sizes=data.get('sizes', existing_item.sizes),
-        prices=data.get('prices', existing_item.prices)
+        size=data.get('size', existing_item.size),
+        price=data.get('price', existing_item.price)
     )
     
     saved_item = menu_service.update_menu_item(item_id, updated_item)

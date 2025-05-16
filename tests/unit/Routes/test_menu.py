@@ -42,14 +42,15 @@ def client(menu_service):
     """Sets up Flask test client with correct Flask-Injector integration."""
     from injector import Binder, Injector, singleton
     from flask_injector import FlaskInjector
-    app = Flask(__name__)
+    from app import create_app
+    # Create a Flask app instance
+    app = create_app()
     app.testing = True
     # Ensure Flask-Injector binds MenuService before request handling
     def configure(binder: Binder):
         binder.bind(MenuService, to=menu_service, scope=singleton)
     injector = Injector([configure])
     FlaskInjector(app=app, injector=injector)  # ✅ Attach Injector before registering blueprints
-    app.register_blueprint(bp)  # ✅ Register routes after dependency injection setup
     with app.test_client() as client:
         yield client
 

@@ -1,31 +1,34 @@
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, clear_mappers
+from sqlalchemy.orm import sessionmaker
 from app.domain.menu_item import MenuItem, Base
 from app.Services.menu_service import MenuService
 from app.daos.menu_dao import MenuDAO
 
-# Test database URL
+# Test database setup
 TEST_DB_URL = "postgresql://test_user:test_password@localhost/test_db"
-
-# Create SQLAlchemy test database engine
 engine = create_engine(TEST_DB_URL)
 Session = sessionmaker(bind=engine)
 
 @pytest.fixture(scope="module")
 def setup_database():
     """Sets up the test database before running tests."""
-    Base.metadata.create_all(engine)  # Create tables
+    Base.metadata.create_all(engine)
     yield
-    Base.metadata.drop_all(engine)  # Cleanup after tests
+    Base.metadata.drop_all(engine)
 
 @pytest.fixture(scope="function")
 def db_session(setup_database):
     """Provides a fresh database session for each test."""
     session = Session()
     yield session
-    session.rollback()  # Rollback any test changes
+    session.rollback()
     session.close()
+
+@pytest.fixture(autouse=True)
+def clean_menu_items(db_session):
+    db_session.query(MenuItem).delete()
+    db_session.commit()
 
 @pytest.fixture
 def menu_dao(db_session):
@@ -38,8 +41,8 @@ def sample_menu_item(db_session):
     item = MenuItem(
         name="Espresso",
         description="Rich and bold coffee",
-        sizes=["Small", "Medium", "Large"],
-        prices=[2.5, 3.0, 3.5]
+        size="Medium",
+        price=3.0
     )
     db_session.add(item)
     db_session.commit()
@@ -51,9 +54,23 @@ def sample_menu_item2(db_session):
     """Creates and stores another sample menu item in the test database."""
     item = MenuItem(
         name="Dark Espresso",
-        description="Very Dark coffee",
-        sizes=["Small", "Medium", "Large"],
-        prices=[2.5, 3.0, 3.5]
+        description="Very dark coffee",
+        size="Large",
+        price=3.5
+    )
+    db_session.add(item)
+    db_session.commit()
+    db_session.refresh(item)
+    return item
+
+@pytest.fixture
+def sample_menu_item3(db_session):
+    """Creates and stores another sample menu item in the test database."""
+    item = MenuItem(
+        name="Dark Espresso",
+        description="Very dark coffee",
+        size="Small",
+        price=1.25
     )
     db_session.add(item)
     db_session.commit()
@@ -67,9 +84,9 @@ def test_get_menu_item_success(menu_dao, sample_menu_item):
     result = service.get_menu_item(sample_menu_item.id)
 
     assert result.id == sample_menu_item.id
-    assert result.name == "Espresso"
-    assert result.size == "Medium"
-    assert result.price == 3.0
+    assert result.name == sample_menu_item.name
+    assert result.size == sample_menu_item.size
+    assert result.price == sample_menu_item.price
 
 def test_get_menu_item_not_found(menu_dao):
     """Test fetching a non-existent menu item."""
@@ -83,8 +100,8 @@ def test_get_all_menu_items(menu_dao, sample_menu_item, sample_menu_item2):
     result = service.get_all_menu_items()
 
     assert len(result) == 2
-    assert result[0].name == "Espresso"
-    assert result[1].name == "Dark Espresso"
+    assert result[0].name == sample_menu_item.name
+    assert result[1].name == sample_menu_item2.name
 
 # ---- Creation & Updating Tests ----
 def test_create_menu_item(menu_dao):
@@ -121,6 +138,31 @@ def test_update_existing_menu_item(menu_dao, sample_menu_item):
     assert result.description == "Stronger coffee"
     assert result.id == sample_menu_item.id  # ID remains unchanged
 
+def test_unique_ids_for_same_type_items(menu_dao, sample_menu_item2, sample_menu_item3):
+    """Test that items of the same type but different sizes get unique IDs."""
+    service = MenuService(menu_dao)
+
+    espresso_medium = sample_menu_item2  # Dark Espresso, Large
+    espresso_small = sample_menu_item3   # Dark Espresso, Small
+
+    assert espresso_medium.id != espresso_small.id  # IDs should be unique
+    assert espresso_medium.name == espresso_small.name  # Same name
+    assert espresso_medium.size != espresso_small.size  # Different sizes
+
+def test_update_non_existent_menu_item(menu_dao):
+    """Test updating a non-existent menu item."""
+    service = MenuService(menu_dao)
+
+    updated_item = MenuItem(
+        name="Non-existent Espresso",
+        description="This should not exist",
+        size="Medium",
+        price=3.0
+    )
+
+    result = service.update_menu_item(999, updated_item)
+    assert result is None  # No update should occur
+
 # ---- Deletion Tests ----
 def test_delete_menu_item(menu_dao, sample_menu_item):
     """Test deleting a menu item."""
@@ -128,4 +170,11 @@ def test_delete_menu_item(menu_dao, sample_menu_item):
     service.remove_menu_item(sample_menu_item.id)
 
     assert menu_dao.find(sample_menu_item.id) is None  # Ensures deletion
+
+def test_delete_non_existent_menu_item(menu_dao):
+    """Test deleting a non-existent menu item."""
+    service = MenuService(menu_dao)
+    result = service.remove_menu_item(999)  # Non-existent ID
+
+    assert result is None  # No deletion should occur
 

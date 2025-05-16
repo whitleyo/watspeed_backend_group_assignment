@@ -7,8 +7,8 @@ def menu_item_to_response(menu_item: MenuItem) -> MenuItemResponseDTO:
         id=menu_item.id,
         name=menu_item.name,
         description=menu_item.description,
-        sizes=menu_item.sizes,
-        prices=menu_item.prices
+        size=menu_item.size,
+        price=menu_item.price
     )
 
 

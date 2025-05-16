@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, DECIMAL
 from sqlalchemy.orm import declarative_base
+from sqlalchemy import UniqueConstraint
 # from ..domain.order import Order
-from typing import List, Optional
 
 Base = declarative_base()
 
@@ -11,6 +11,7 @@ class MenuItem(Base):
     SQLAlchemy model for menu items.
     """
     __tablename__ = "menu"
+    __table_args__ = (UniqueConstraint("name", "size", name="unique_menu_item"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)

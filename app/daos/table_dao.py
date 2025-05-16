@@ -1,8 +1,7 @@
-from ..domain.table import Table
-from .dao_abs import DAO
+from app.domain.table import Table
+from app.daos.dao_abs import DAO
 from typing import List, Optional
 from db.database import get_session
-from app.domain.table import Table
 from sqlalchemy.orm import Session
 
 class TableDAO(DAO):

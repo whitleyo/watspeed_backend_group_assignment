@@ -24,11 +24,6 @@ class Order(Base):
     status: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
     order_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
-    # Many-to-Many relationship with MenuItems
-    menu_items: Mapped[List["MenuItem"]] = relationship(
-        "MenuItem", secondary=order_menu_items, back_populates="orders"
-    )
-
     def __init__(
         self, 
         customer_name: str, 

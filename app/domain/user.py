@@ -1,13 +1,29 @@
-class User:
-    def __init__(self, user_id: int, username: str, email: str):
-        """
-        Initializes a new User instance.
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Integer
+from sqlalchemy.orm import declarative_base
 
-        Args:
-            user_id (int): The unique identifier for the user.
-            username (str): The username of the user.
-            email (str): The email address of the user.
-        """
-        self.user_id: int = user_id  # Unique identifier for the user
-        self.username: str = username  # Username of the user
-        self.email: str = email  # Email address of the user
+Base = declarative_base()
+
+class User(Base):
+    """
+    SQLAlchemy model for users.
+    """
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    password: Mapped[str] = mapped_column(String(255), nullable=False)  # Stores hashed password
+
+    def __init__(self, username: str, email: str, password: str):
+        self.username = username
+        self.email = email
+        self.password = password  # Store hashed password in production!
+
+    def to_dict(self):
+        """Convert model instance to dictionary (excluding password for security)."""
+        return {
+            "id": self.id,
+            "username": self.username,
+            "email": self.email
+        }

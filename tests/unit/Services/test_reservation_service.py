@@ -18,7 +18,6 @@ class TestReservationService:
     def sample_reservation(self):
         """Sample reservation fixture"""
         return Reservation(
-            reservation_id=1,
             table_id=2,
             customer_name="Test Customer",
             people_count=4,
@@ -101,7 +100,6 @@ class TestReservationService:
         table_dao.find.return_value = MagicMock(capacity=4)
         
         updated_reservation = Reservation(
-            reservation_id=1,
             table_id=3,  # Changed table
             customer_name="Updated Customer",
             people_count=2,

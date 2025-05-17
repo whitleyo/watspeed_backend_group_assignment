@@ -1,63 +1,64 @@
 from typing import List, Optional
 from ..domain.menu_item import MenuItem
 from .dao_abs import DAO
+from db.database import get_session
+from typing import List, Optional
+from app.domain.menu_item import MenuItem
 
 class MenuDAO(DAO):
     """
-    Data Access Object (DAO) for managing menu items.
+    Data Access Object (DAO) for managing menu items using SQLAlchemy with an active session.
     """
 
     def __init__(self):
-        # Simulated in-memory database
-        self.menu_items = {}
-        self.next_id = 1  # Auto-incrementing ID for new items
+        """Initialize with an active database session."""
+        self.session = get_session()
 
     def find(self, item_id: int) -> Optional[MenuItem]:
         """Retrieve a menu item by its ID."""
-        return self.menu_items.get(item_id)
+        return self.session.get(MenuItem, item_id)
 
     def findAll(self) -> List[MenuItem]:
         """Retrieve all menu items."""
-        return list(self.menu_items.values())
+        return self.session.query(MenuItem).all()
 
-    def save(self,  menu_item: MenuItem) -> MenuItem:
-        """
-        Save a new or updated menu item.
-        - If `item_id == 0`, create a new item with a unique ID.
-        - Otherwise, update an existing item.
-        """
+    def save(self, menu_item: MenuItem) -> MenuItem:
+        """Save a new menu item."""
+        try:
+            self.session.add(menu_item)
+            self.session.commit()
+            self.session.refresh(menu_item)
+            return menu_item
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Error saving menu item: {e}")
 
-        item_id = self.next_id
-        self.next_id += 1
-        
-        new_menu_item = MenuItem(
-            id=item_id,
-            name=menu_item.name,
-            description=menu_item.description,
-            sizes=menu_item.sizes,
-            prices=menu_item.prices
-        )
-        self.menu_items[item_id] = new_menu_item
-        return new_menu_item
-    
-    def update(self, item_id: int, menu_item: MenuItem) -> MenuItem:
-        """
-        Save a new or updated menu item.
-        - If `item_id == 0`, create a new item with a unique ID.
-        - Otherwise, update an existing item.
-        """
-        existing_menu = self.find(item_id)
-        if existing_menu is None:
+    def update(self, item_id: int, updated_item: MenuItem) -> MenuItem:
+        """Update an existing menu item."""
+        menu_item = self.session.get(MenuItem, item_id)
+        if not menu_item:
             raise ValueError(f"Menu item with ID {item_id} does not exist.")
-        else:
-            # Update the existing menu item with new values
-            existing_menu.name = menu_item.name
-            existing_menu.description = menu_item.description
-            existing_menu.sizes = menu_item.sizes
-            existing_menu.prices = menu_item.prices  
 
-        return existing_menu
+        menu_item.name = updated_item.name
+        menu_item.description = updated_item.description
+        menu_item.size = updated_item.size
+        menu_item.price = updated_item.price
+
+        try:
+            self.session.commit()
+            self.session.refresh(menu_item)
+            return menu_item
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Error updating menu item: {e}")
 
     def delete(self, item_id: int) -> None:
-        """Delete a menu item by ID; no return value."""
-        self.menu_items.pop(item_id, None)
+        """Delete a menu item by ID."""
+        menu_item = self.session.get(MenuItem, item_id)
+        if menu_item:
+            try:
+                self.session.delete(menu_item)
+                self.session.commit()
+            except Exception as e:
+                self.session.rollback()
+                raise ValueError(f"Error deleting menu item: {e}")

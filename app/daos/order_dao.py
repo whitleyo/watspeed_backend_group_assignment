@@ -2,16 +2,12 @@ from typing import List, Optional
 from ..domain.order import Order  # Assuming you have an Order domain class
 from .dao_abs import DAO
 from db.database import get_session
-from sqlalchemy.orm import Session
 
 class OrderDAO(DAO):
     """DAO for managing orders."""
 
-    def __init__(self, session: Optional[Session] = None):
-        if session is None:
-            self.session = get_session()
-        else:
-            self.session = session
+    def __init__(self):
+        self.session = get_session()
 
     def find(self, order_id: int) -> Optional[Order]:
         """Retrieve an order by ID."""

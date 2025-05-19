@@ -31,7 +31,7 @@ class MenuService:
     def update_menu_item(self, item_id: int, menu_item: MenuItem) -> MenuItemResponseDTO:
         """update a menu item and return response DTO."""
         saved_item = self.menu_dao.update(item_id, menu_item)
-        return menu_item_to_response(saved_item)
+        return menu_item_to_response(saved_item) if saved_item else None
 
     def remove_menu_item(self, item_id: int) -> None:
         """Delete a menu item."""

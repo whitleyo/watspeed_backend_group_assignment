@@ -5,18 +5,18 @@ class OrderRequestDTO(BaseModel):
     """
     DTO for creating a new order.
     """
-    items: List[str] = Field(..., description="List of coffee item names")
-    size: str = Field(..., description="Coffee size (e.g., Small, Medium, Large)")
-    user_id: int = Field(..., description="ID of the user placing the order")
-
+    customer_name: str = Field(..., description="Name of the customer placing the order")
+    items: List[dict] = Field(..., description="List of menu items, each with menu_item_id and quantity")
 
 class ModifyOrderRequestDTO(BaseModel):
     """
     DTO for modifying an existing order.
     """
     order_id: int = Field(..., description="ID of the existing order")
-    items: List[str] = Field(..., description="Updated list of coffee item names")
-    size: str = Field(..., description="Updated coffee size (e.g., Small, Medium, Large)")
+    items: List[dict] = Field(..., description="Updated list of menu items, each with menu_item_id and quantity")
+    status: str = Field(None, description="Updated order status (optional)")
+
+
 
 class DeleteOrderRequestDTO(BaseModel):
     """

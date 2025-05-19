@@ -1,18 +1,19 @@
-from typing import List, Optional
-from ..domain.menu_item import MenuItem
-from .dao_abs import DAO
-from db.database import get_session
-from typing import List, Optional
 from app.domain.menu_item import MenuItem
+from app.daos.dao_abs import DAO
+from typing import List, Optional
+from db.database import get_session
+from sqlalchemy.orm import Session
 
 class MenuDAO(DAO):
     """
     Data Access Object (DAO) for managing menu items using SQLAlchemy with an active session.
     """
 
-    def __init__(self):
-        """Initialize with an active database session."""
-        self.session = get_session()
+    def __init__(self, session: Optional[Session] = None):
+        if session is None:
+            self.session = get_session()
+        else:
+            self.session = session
 
     def find(self, item_id: int) -> Optional[MenuItem]:
         """Retrieve a menu item by its ID."""
@@ -37,7 +38,8 @@ class MenuDAO(DAO):
         """Update an existing menu item."""
         menu_item = self.session.get(MenuItem, item_id)
         if not menu_item:
-            raise ValueError(f"Menu item with ID {item_id} does not exist.")
+            print(f"Menu item with ID {item_id} does not exist.")
+            return None
 
         menu_item.name = updated_item.name
         menu_item.description = updated_item.description
@@ -62,3 +64,5 @@ class MenuDAO(DAO):
             except Exception as e:
                 self.session.rollback()
                 raise ValueError(f"Error deleting menu item: {e}")
+        else:
+            print(f"Menu item with ID {item_id} does not exist.")

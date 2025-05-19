@@ -5,8 +5,8 @@ from app.messages.requests.order_request_dto import OrderRequestDTO, ModifyOrder
 from app.daos.order_dao import OrderDAO
 
 class OrderService:
-    def __init__(self, dao: OrderDAO):
-        self.dao = dao
+    def __init__(self, order_dao: OrderDAO):
+        self.dao = order_dao
 
     def find_order(self, order_id: int) -> Optional[OrderResponseDTO]:
         """Find order by ID."""
@@ -22,7 +22,9 @@ class OrderService:
         """Save a new order."""
         order = order_request_to_domain(order_dto, self.dao)  # Mapper now constructs full Order object
         saved_order = self.dao.save(order)  # Pass the full Order object directly
-        return order_to_response(saved_order, "Order saved successfully")
+        if saved_order:
+            return order_to_response(saved_order, "Order saved successfully")
+        return None
 
     def modify_order(self, modify_dto: ModifyOrderRequestDTO) -> Optional[OrderResponseDTO]:
         """Modify an existing order."""

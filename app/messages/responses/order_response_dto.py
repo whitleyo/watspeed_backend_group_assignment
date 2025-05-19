@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 class OrderResponseDTO(BaseModel):
     """
@@ -10,7 +10,6 @@ class OrderResponseDTO(BaseModel):
     order_items: List[dict] = Field(..., description="List of ordered menu items with quantity")
     status: str = Field(..., description="Order status")
     message: str = Field(..., description="Optional confirmation message")
-
 
 class DeleteOrderResponseDTO(BaseModel):
     """

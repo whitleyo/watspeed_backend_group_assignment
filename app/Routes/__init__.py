@@ -2,7 +2,7 @@ from flask import Blueprint
 from .auth import auth_bp
 from .menu import bp as menu_bp
 from .reservation import bp as reservations_bp
-from .orders import order_bp
+from .orders import bp as order_bp
 
 api_v1 = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 

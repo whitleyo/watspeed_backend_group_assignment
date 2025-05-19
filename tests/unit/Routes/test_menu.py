@@ -95,6 +95,7 @@ def test_get_all_menu_items_success(client, sample_menu_item, sample_menu_item2)
     assert len(res.json) == 2
     assert res.json[0]["name"] == "Cappuccino"
     assert res.json[1]["price"] == 2.0
+    # print(client.application.url_map)
 
 
 def test_get_menu_item_success(client, sample_menu_item):

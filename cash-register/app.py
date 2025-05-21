@@ -15,6 +15,19 @@ def get_transactions():
     start_time = request.args.get('start_time')
     end_time = request.args.get('end_time')
 
+     # Validate inputs
+    if not store_id or not start_time or not end_time:
+        return jsonify({"error": "Missing required parameters: store_id, start_time, end_time"}), 400
+
+    try:
+        start = datetime.fromisoformat(start_time)
+        end = datetime.fromisoformat(end_time)
+    except Exception:
+        return jsonify({"error": "Invalid date format. Use ISO format, e.g., 2024-06-01T10:00:00"}), 400
+
+    if start >= end:
+        return jsonify({"error": "start_time must be before end_time"}), 400
+
     # Parse times
     start = datetime.fromisoformat(start_time)
     end = datetime.fromisoformat(end_time)

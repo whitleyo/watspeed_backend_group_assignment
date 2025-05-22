@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_injector import FlaskInjector
+from flask_socketio import SocketIO
 from injector import Binder
-#from .config import Config
 from .Routes.reservation import bp as reservations_bp
 from .Routes.table import bp as tables_bp
 from .Routes.menu import bp as menu_bp
@@ -15,38 +15,51 @@ from .daos.table_dao import TableDAO
 from .daos.menu_dao import MenuDAO
 from .daos.order_dao import OrderDAO
 
+# Initialize SocketIO at module level
+socketio = SocketIO(async_mode='threading')
+
 def configure(binder: Binder):
     """Configure dependency injection bindings"""
+    # DAO bindings
     binder.bind(ReservationDAO, to=ReservationDAO())
     binder.bind(TableDAO, to=TableDAO())
     binder.bind(MenuDAO, to=MenuDAO())
     binder.bind(OrderDAO, to=OrderDAO())
+    
+    # Service layer bindings
     binder.bind(ReservationService, to=ReservationService(
-        reservation_dao=ReservationDAO(),
-        table_dao=TableDAO()
+        reservation_dao=binder.injector.get(ReservationDAO),
+        table_dao=binder.injector.get(TableDAO)
     ))
     binder.bind(TableService, to=TableService(
-        table_dao=TableDAO()
+        table_dao=binder.injector.get(TableDAO)
     ))
     binder.bind(MenuService, to=MenuService(
-        menu_dao=MenuDAO()
+        menu_dao=binder.injector.get(MenuDAO)
     ))
     binder.bind(OrderService, to=OrderService(
-        order_dao=OrderDAO()
+        order_dao=binder.injector.get(OrderDAO)
     ))
 
 def create_app():
+    """Application factory function"""
     app = Flask(__name__)
-    #app.config.from_object(config_class)
     
     # Register blueprints
     app.register_blueprint(reservations_bp)
     app.register_blueprint(tables_bp)
     app.register_blueprint(menu_bp)
     app.register_blueprint(order_bp)
-    #app.register_blueprint(auth_bp)
-    #app.register_blueprint(api_v1) 
+    
+    # Initialize SocketIO
+    socketio.init_app(app, cors_allowed_origins="*")
+    
     # Configure dependency injection
     FlaskInjector(app=app, modules=[configure])
+    
+    # Register WebSocket handlers with app context
+    with app.app_context():
+        from .websocket_handler import register_socketio_handlers
+        register_socketio_handlers(socketio, app)
     
     return app

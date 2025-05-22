@@ -69,8 +69,9 @@ def register_socketio_handlers(sio, app):
     @sio.on('connect', namespace='/')
     def handle_connect():
         active_clients.add(request.sid)
-        print(f"Client connected: {request.sid}")
-        emit('connection_ack', {'message': 'Connection established'})
+        print(f"Client connected: {request.sid}", flush=True)
+        emit('connection_ack', {'message': 'Connection established'}, namespace='/')
+        print(f"DEBUG: Emitted connection_ack for {request.sid}", flush=True)  # Debugging step
 
     @sio.on('disconnect', namespace='/')
     def handle_disconnect():

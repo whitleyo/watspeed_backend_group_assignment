@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_from_directory, make_response
 from injector import inject
 from ..Services.menu_service import MenuService
 from ..domain.menu_item import MenuItem
@@ -14,6 +14,13 @@ def get_all_menu_items(menu_service: MenuService):
     response = menu_list_to_response(menu_items)
     response_converted = [item.model_dump() for item in response]
     return jsonify(response_converted)  # Convert DTOs to JSON
+
+@inject
+@bp.route('/download', methods=['GET'])
+def download_menu():
+    response = make_response(send_from_directory('static', 'cafe-watspeed-menu.pdf'))
+    response.headers['Content-Disposition'] = 'attachment; filename=menu.pdf'
+    return response
 
 @inject
 @bp.route('/<int:item_id>', methods=['GET'])

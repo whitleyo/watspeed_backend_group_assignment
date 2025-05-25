@@ -61,7 +61,6 @@ dist/
 
 # Project-specific ignores
 /temp_uploads/
-*.pdf
 *.xlsx
 *.xls
 *.doc

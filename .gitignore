@@ -64,6 +64,7 @@ dist/
 *.xlsx
 *.xls
 *.doc
+test_menu.pdf
 
 # Playwright (E2E tests)
 playwright-report/

@@ -24,17 +24,21 @@ def download_menu():
     response.headers['Content-Disposition'] = 'attachment; filename=menu.pdf'
     return response
 
-# @inject
-# @bp.route('/download', methods=['GET'])
-# def download_menu_pdf(menu_service: MenuService):
-#     """Generate and download the menu as a PDF."""
-#     pdf_bytes = menu_service.generate_menu_pdf()
-#     return send_file(
-#         io.BytesIO(pdf_bytes),
-#         mimetype='application/pdf',
-#         as_attachment=True,
-#         download_name='cafe-watspeed-menu.pdf'
-#     )
+@inject
+@bp.route('/download/generated', methods=['GET'])
+def download_generated_menu(menu_service: MenuService):
+    """
+    Generate and download the menu as a PDF.
+    Currently this endpoint doesn't work on local as the PDF generation
+    relies on the database which is not set up in the local environment.
+    """
+    pdf_bytes = menu_service.generate_menu_pdf()
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name='cafe-watspeed-menu.pdf'
+    )
 
 @inject
 @bp.route('/<int:item_id>', methods=['GET'])

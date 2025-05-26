@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from app.domain.menu_item import MenuItem, Base
 from app.Services.menu_service import MenuService
 from app.daos.menu_dao import MenuDAO
+import io
 
 # Test database setup
 TEST_DB_URL = "postgresql://test_user:test_password@localhost/test_db"
@@ -178,3 +179,16 @@ def test_delete_non_existent_menu_item(menu_dao):
 
     assert result is None  # No deletion should occur
 
+def test_generate_menu_pdf(menu_dao):
+    """
+    Test that generate_menu_pdf returns a non-empty PDF bytes object.
+    """
+    service = MenuService(menu_dao)
+    pdf_bytes = service.generate_menu_pdf()
+
+    # Check that the result is bytes and not empty
+    assert isinstance(pdf_bytes, bytes)
+    assert len(pdf_bytes) > 100  # Should be more than just a PDF header
+
+    # Optionally, check that the PDF header is present
+    assert pdf_bytes.startswith(b'%PDF')

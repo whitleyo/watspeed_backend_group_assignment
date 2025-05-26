@@ -151,7 +151,6 @@ def test_download_generated_menu(client, sample_menu_item, sample_menu_item2):
     """
     Test the /menu/download/generated endpoint returns a PDF file.
     """
-    # Patch the menu_service to return a simple PDF bytes
 
     response = client.get("/menu/download/generated")
     
@@ -163,3 +162,15 @@ def test_download_generated_menu(client, sample_menu_item, sample_menu_item2):
     assert response.mimetype == "application/pdf"
     assert response.data.startswith(b"%PDF")
     assert "attachment; filename=cafe-watspeed-menu.pdf" in response.headers.get("Content-Disposition", "")
+
+def test_download_menu(client):
+    """
+    Test the /menu/download/ endpoint returns a PDF file.
+    """
+
+    response = client.get("/menu/download")
+
+    assert response.status_code == 200
+    assert response.mimetype == "application/pdf"
+    assert response.data.startswith(b"%PDF")
+    assert "attachment; filename=menu.pdf" in response.headers.get("Content-Disposition", "")

@@ -5,6 +5,8 @@ import io
 from ..Services.menu_service import MenuService
 from ..domain.menu_item import MenuItem
 from ..mappers.menu_mapper import menu_item_to_response, menu_list_to_response
+import os
+from werkzeug.utils import secure_filename
 
 bp = Blueprint('menu', __name__, url_prefix='/menu')
 
@@ -101,3 +103,32 @@ def delete_menu_item(menu_service: MenuService, item_id: int):
 
     menu_service.remove_menu_item(item_id)
     return jsonify({'message': 'Menu item deleted'}), 200
+
+
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'pdf'}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@inject
+@bp.route('/upload', methods=['POST'])
+def upload_pdf():
+    """
+    Upload a PDF file to the server.
+    """
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        return jsonify({'message': 'PDF uploaded successfully', 'filename': filename}), 201
+    
+    return jsonify({'error': 'Invalid file type. Only PDFs are allowed.'}), 400

@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
+from flask import send_file, send_from_directory, make_response
 from injector import inject
+import io
 from ..Services.menu_service import MenuService
 from ..domain.menu_item import MenuItem
 from ..mappers.menu_mapper import menu_item_to_response, menu_list_to_response
@@ -14,6 +16,29 @@ def get_all_menu_items(menu_service: MenuService):
     response = menu_list_to_response(menu_items)
     response_converted = [item.model_dump() for item in response]
     return jsonify(response_converted)  # Convert DTOs to JSON
+
+@inject
+@bp.route('/download', methods=['GET'])
+def download_menu():
+    response = make_response(send_from_directory('static', 'cafe-watspeed-menu.pdf'))
+    response.headers['Content-Disposition'] = 'attachment; filename=menu.pdf'
+    return response
+
+@inject
+@bp.route('/download/generated', methods=['GET'])
+def download_generated_menu(menu_service: MenuService):
+    """
+    Generate and download the menu as a PDF.
+    Currently this endpoint doesn't work on local as the PDF generation
+    relies on the database which is not set up in the local environment.
+    """
+    pdf_bytes = menu_service.generate_menu_pdf()
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name='cafe-watspeed-menu.pdf'
+    )
 
 @inject
 @bp.route('/<int:item_id>', methods=['GET'])

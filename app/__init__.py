@@ -8,6 +8,7 @@ from .Routes.table import bp as tables_bp
 from .Routes.menu import bp as menu_bp
 from .Routes.orders import bp as order_bp
 from .Routes.images import bp as images_bp
+from .Routes.calculator import bp as calculator_bp
 from .Services.reservation_service import ReservationService
 from .Services.table_service import TableService
 from .Services.menu_service import MenuService
@@ -57,6 +58,7 @@ def create_app():
     app.register_blueprint(menu_bp)
     app.register_blueprint(order_bp)
     app.register_blueprint(images_bp)
+    app.register_blueprint(calculator_bp)
     
     # Initialize SocketIO
     socketio.init_app(app, cors_allowed_origins="*")

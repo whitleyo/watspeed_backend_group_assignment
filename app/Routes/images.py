@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, render_template
 import os
 from werkzeug.utils import secure_filename
 
@@ -9,6 +9,11 @@ bp = Blueprint('images', __name__, url_prefix='/images')
 def allowed_file(filename):
     allowed_extensions = current_app.config.get('ALLOWED_EXTENSIONS')  
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+# Route to serve the upload page
+@bp.route('/')
+def upload_page():
+    return render_template('image_upload.html')  # Serve the HTML page
 
 # Route to handle image uploads
 @bp.route('/upload', methods=['POST'])

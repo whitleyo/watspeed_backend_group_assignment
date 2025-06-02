@@ -65,3 +65,17 @@ def get_all_orders(order_service: OrderService):
     """Get all orders."""
     orders = order_service.find_all_orders()
     return jsonify([order.dict() for order in orders]), 200
+
+@inject
+@bp.route('/order_spreadhseet', methods=['POST'])
+def order_spreadsheet(order_service: OrderService):
+    """Generate a spreadsheet of all orders.
+    params:
+        - begin_datetime: str, optional
+        - end_datetime: str, optional
+    Returns:
+        - xlsx file containing order details
+    """
+    # Placeholder for spreadsheet generation logic
+    # This would typically involve creating a file and returning it as a response
+    return jsonify({"status": 0, "message": "Spreadsheet generation not implemented"}), 501

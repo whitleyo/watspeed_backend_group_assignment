@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_file
+from app.Services.order_xlsx_service import OrderXLSXService
 from injector import inject
 from app.Services.order_service import OrderService
 from app.daos.order_dao import OrderDAO
@@ -67,15 +68,11 @@ def get_all_orders(order_service: OrderService):
     return jsonify([order.dict() for order in orders]), 200
 
 @inject
-@bp.route('/order_spreadhseet', methods=['POST'])
-def order_spreadsheet(order_service: OrderService):
-    """Generate a spreadsheet of all orders.
-    params:
-        - begin_datetime: str, optional
-        - end_datetime: str, optional
-    Returns:
-        - xlsx file containing order details
-    """
-    # Placeholder for spreadsheet generation logic
-    # This would typically involve creating a file and returning it as a response
-    return jsonify({"status": 0, "message": "Spreadsheet generation not implemented"}), 501
+@bp.route('/order_spreadsheet', methods=['GET'])
+def order_spreadsheet(order_xlsx_service: OrderXLSXService):
+    """Generate and download a spreadsheet of filtered orders."""
+    begin_datetime = request.args.get("begin_datetime")
+    end_datetime = request.args.get("end_datetime")
+
+    file_path = order_xlsx_service.export_orders_to_xlsx(begin_datetime=begin_datetime, end_datetime=end_datetime)
+    return send_file(file_path, as_attachment=True, download_name="orders.xlsx")

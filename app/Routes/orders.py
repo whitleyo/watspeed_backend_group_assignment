@@ -74,5 +74,12 @@ def order_spreadsheet(order_xlsx_service: OrderXLSXService):
     begin_datetime = request.args.get("begin_datetime")
     end_datetime = request.args.get("end_datetime")
 
-    file_path = order_xlsx_service.export_orders_to_xlsx(begin_datetime=begin_datetime, end_datetime=end_datetime)
-    return send_file(file_path, as_attachment=True, download_name="orders.xlsx")
+    try:
+        file_path = order_xlsx_service.export_orders_to_xlsx(
+            begin_datetime=begin_datetime,
+            end_datetime=end_datetime
+        )
+        return send_file(file_path, as_attachment=True, download_name="orders.xlsx")
+    except Exception as e:
+        # Optional: log the error
+        return jsonify({"status": 2, "message": "Error generating spreadsheet"}), 500

@@ -25,11 +25,11 @@ class TableService:
         """
         return self.table_dao.findAll()
     
-    def get_tables_by_shop(self, shop_id: int) -> List[Table]:
+    def get_tables_by_location(self, location: str) -> List[Table]:
         """
         Get all tables in a specific shop.
         """
-        return self.table_dao.find_by_shop(shop_id)
+        return self.table_dao.find_by_location(location)
     
     def get_table_capacity(self, table_id: int) -> Optional[int]:
         """

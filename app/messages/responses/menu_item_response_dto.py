@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict
 
 class MenuItemResponseDTO(BaseModel):
     """
@@ -8,5 +7,5 @@ class MenuItemResponseDTO(BaseModel):
     id: int = Field(..., description="Menu item ID")
     name: str = Field(..., description="Item name")
     description: str = Field(..., description="Item description")
-    sizes: List[str] = Field(..., description="Available sizes")
-    prices: Dict[str, float] = Field(..., description="Mapping of size to price")
+    size: str= Field(..., description="Item size")
+    price: float = Field(..., description="price of the item")

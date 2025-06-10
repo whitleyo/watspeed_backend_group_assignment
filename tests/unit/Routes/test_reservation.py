@@ -32,19 +32,20 @@ class TestReservationRoutes:
 
     def test_create_reservation_success(self):
         """Test successful reservation creation."""
-        self.mock_service.create_reservation.return_value = Reservation(1, 10, "John Doe", 4, "2025-04-30T19:00:00")
+        self.mock_service.create_reservation.return_value = Reservation(10, "John Doe", 4, "2025-04-30T19:00:00")
         data = {"table_id": 10, "customer_name": "John Doe", "people_count": 4, "time": "2025-04-30T19:00:00"}
         
         res = self.client.post('/reservations/', json=data)
 
         assert res.status_code == 201
-        assert res.json == {
-            "reservation_id": 1, "table_id": 10, "customer_name": "John Doe", "people_count": 4, "time": "2025-04-30T19:00:00"
-        }
+        assert res.json["table_id"] == 10
+        assert res.json["customer_name"] == "John Doe"
+        assert res.json["people_count"] == 4
+        assert res.json["time"] == "2025-04-30T19:00:00"
 
     def test_get_reservation_success(self):
         """Test fetching an existing reservation."""
-        self.mock_service.get_reservation.return_value = Reservation(1, 10, "John Doe", 4, "2025-04-30T19:00:00")
+        self.mock_service.get_reservation.return_value = Reservation(10, "John Doe", 4, "2025-04-30T19:00:00")
 
         res = self.client.get('/reservations/1')
 
@@ -62,7 +63,7 @@ class TestReservationRoutes:
 
     def test_update_reservation_success(self):
         """Test updating a reservation."""
-        self.mock_service.update_reservation.return_value = Reservation(1, 10, "John Doe", 5, "2025-04-30T20:00:00")
+        self.mock_service.update_reservation.return_value = Reservation(10, "John Doe", 5, "2025-04-30T20:00:00")
 
         data = {"people_count": 5, "time": "2025-04-30T20:00:00"}
         res = self.client.put('/reservations/1', json=data)

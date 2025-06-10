@@ -1,111 +1,176 @@
 import pytest
 from flask import Flask, json
-from unittest.mock import MagicMock
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from app.domain.menu_item import Base, MenuItem
 from app.Services.menu_service import MenuService
-from app.domain.menu_item import MenuItem
+from app.daos.menu_dao import MenuDAO
 from app.Routes.menu import bp  # Import the menu routes
-import app
 
-class TestMenuRoutes:
-    """Test class for menu route endpoints."""
+# Test database setup
+TEST_DB_URL = "postgresql://test_user:test_password@localhost/test_db"
+engine = create_engine(TEST_DB_URL)
+Session = sessionmaker(bind=engine)
 
-    @classmethod
-    def setup_class(cls):
-        """Set up Flask test client and mock dependency injection."""
-        from app import create_app
-        cls.app = create_app()
-        cls.client = cls.app.test_client()
-        cls.mock_service = MagicMock(spec=MenuService)
+@pytest.fixture(scope="session")
+def setup_database():
+    """Ensures a fresh test database before running tests."""
+    Base.metadata.create_all(engine)  # Create tables
+    yield
+    Base.metadata.drop_all(engine)  # Cleanup after tests
 
-        # Override dependency injection globally for all tests
-        def mock_binder(binder):
-            binder.bind(MenuService, to=cls.mock_service)
+@pytest.fixture(scope="function")
+def db_session(setup_database):
+    """Provides a fresh database session for each test."""
+    session = Session()
+    yield session
+    session.rollback()
+    session.close()
 
-        from injector import Injector
-        from flask_injector import FlaskInjector
-        cls.injector = Injector([mock_binder])
-        FlaskInjector(app=cls.app, injector=cls.injector)
+@pytest.fixture
+def menu_dao(db_session):
+    """Provides a MenuDAO instance for actual DB interaction."""
+    return MenuDAO(db_session)
 
-    @pytest.fixture
-    def sample_menu_item(self):
-        """Sample menu item fixture."""
-        return MenuItem(
-            id=1,
-            name="Cappuccino",
-            description="Frothy and smooth coffee",
-            sizes=["Small", "Medium", "Large"],
-            prices={"Small": 3.5, "Medium": 4.0, "Large": 4.5}
-        )
+@pytest.fixture
+def menu_service(menu_dao):
+    """Provides a MenuService instance with real DB interaction."""
+    return MenuService(menu_dao)
 
-    # ---- Retrieval Tests ----
-    def test_get_all_menu_items_success(self, sample_menu_item):
-        """Test retrieving all menu items."""
-        self.mock_service.get_all_menu_items.return_value = [sample_menu_item]
+@pytest.fixture(scope="function")
+def client(menu_service):
+    """Sets up Flask test client with correct Flask-Injector integration."""
+    from injector import Binder, Injector, singleton
+    from flask_injector import FlaskInjector
+    from app import create_app
+    app = create_app()
+    app.testing = True
+    # Ensure Flask-Injector binds MenuService before request handling
+    def configure(binder: Binder):
+        binder.bind(MenuService, to=menu_service, scope=singleton)
+    injector = Injector([configure])
+    FlaskInjector(app=app, injector=injector)  # ✅ Attach Injector before registering blueprints
+    with app.test_client() as client:
+        yield client
 
-        res = self.client.get('/menu/')
-        assert res.status_code == 200
-        assert len(res.json) == 1
-        assert res.json[0]["name"] == "Cappuccino"
+@pytest.fixture
+def sample_menu_item(db_session):
+    """Creates a real menu item in the database."""
+    item = MenuItem(
+        name="Cappuccino",
+        description="Frothy and smooth coffee",
+        size="Medium",
+        price=4.0
+    )
+    db_session.add(item)
+    db_session.commit()
+    db_session.refresh(item)
+    return item
 
-    def test_get_menu_item_success(self, sample_menu_item):
-        """Test retrieving a specific menu item."""
-        self.mock_service.get_menu_item.return_value = sample_menu_item
+@pytest.fixture
+def sample_menu_item2(db_session):
+    """Creates a real menu item in the database."""
+    item = MenuItem(
+        name="Iced Latte",
+        description="Chilled coffee with milk",
+        size="Large",
+        price=2.0
+    )
+    db_session.add(item)
+    db_session.commit()
+    db_session.refresh(item)
+    return item
 
-        res = self.client.get('/menu/1')
-        assert res.status_code == 200
-        assert res.json["name"] == "Cappuccino"
+@pytest.fixture(autouse=True)
+def clean_menu_items(db_session):
+    """Ensure test database starts fresh before each test."""
+    db_session.query(MenuItem).delete()
+    db_session.commit()
 
-    def test_get_menu_item_not_found(self):
-        """Test retrieving a non-existent menu item."""
-        self.mock_service.get_menu_item.return_value = None
+# ---- Retrieval Tests ----
+def test_get_all_menu_items_success(client, sample_menu_item, sample_menu_item2):
+    """Test retrieving all menu items."""
+    res = client.get('/menu/')
+    assert res.status_code == 200
+    assert len(res.json) == 2
+    assert res.json[0]["name"] == "Cappuccino"
+    assert res.json[1]["price"] == 2.0
+    # print(client.application.url_map)
 
-        res = self.client.get('/menu/999')
-        assert res.status_code == 404
-        assert res.json == {"error": "Menu item not found"}
 
-    # ---- Creation & Updating Tests ----
-    def test_create_menu_item_success(self, sample_menu_item):
-        """Test creating a new menu item."""
-        self.mock_service.add_menu_item.return_value = sample_menu_item
+def test_get_menu_item_success(client, sample_menu_item):
+    """Test retrieving a specific menu item."""
+    res = client.get(f'/menu/{sample_menu_item.id}')
+    assert res.status_code == 200
+    assert res.json["name"] == "Cappuccino"
 
-        data = {
-            "name": "Latte",
-            "description": "Milk coffee",
-            "sizes": ["Small", "Medium"],
-            "prices": {"Small": 3.8, "Medium": 4.2}
-        }
-        res = self.client.post('/menu/', json=data)
+def test_get_menu_item_not_found(client):
+    """Test retrieving a non-existent menu item."""
+    res = client.get('/menu/999')
+    assert res.status_code == 404
+    assert res.json == {"error": "Menu item not found"}
 
-        assert res.status_code == 201
-        assert res.json["name"] == "Cappuccino"  # Mock returns sample item
+# ---- Creation & Updating Tests ----
+def test_create_menu_item_success(client):
+    """Test creating a new menu item."""
+    data = {
+        "name": "Latte",
+        "description": "Milk coffee",
+        "size": "Medium",
+        "price": 4.2
+    }
+    res = client.post('/menu/', json=data)
 
-    def test_update_menu_item_success(self, sample_menu_item):
-        """Test updating an existing menu item."""
-        self.mock_service.get_menu_item.return_value = sample_menu_item
-        self.mock_service.update_menu_item.return_value = sample_menu_item
+    assert res.status_code == 201
+    assert res.json["name"] == "Latte"
 
-        data = {"name": "Updated Cappuccino", "description": "Stronger coffee"}
-        res = self.client.put('/menu/1', json=data)
+def test_update_menu_item_success(client, sample_menu_item):
+    """Test updating an existing menu item."""
+    data = {"name": "Updated Cappuccino", "description": "Stronger coffee"}
+    res = client.put(f'/menu/{sample_menu_item.id}', json=data)
 
-        assert res.status_code == 200
-        assert res.json["name"] == "Cappuccino"  # Mocked response
+    assert res.status_code == 200
+    assert res.json["name"] == "Updated Cappuccino"
 
-    # ---- Deletion Tests ----
-    def test_delete_menu_item_success(self, sample_menu_item):
-        """Test deleting a menu item."""
-        self.mock_service.get_menu_item.return_value = sample_menu_item
-        self.mock_service.remove_menu_item.return_value = None
+# ---- Deletion Tests ----
+def test_delete_menu_item_success(client, sample_menu_item):
+    """Test deleting a menu item."""
+    res = client.delete(f'/menu/{sample_menu_item.id}')
 
-        res = self.client.delete('/menu/1')
+    assert res.status_code == 200
+    assert res.json == {"message": "Menu item deleted"}
 
-        assert res.status_code == 200
-        assert res.json == {"message": "Menu item deleted"}
+def test_delete_menu_item_not_found(client):
+    """Test deleting a non-existent menu item."""
+    res = client.delete('/menu/999')
 
-    def test_delete_menu_item_not_found(self):
-        """Test deleting a non-existent menu item."""
-        self.mock_service.get_menu_item.return_value = None
+    assert res.status_code == 404
+    assert res.json == {"error": "Menu item not found"}
 
-        res = self.client.delete('/menu/999')
+def test_download_generated_menu(client, sample_menu_item, sample_menu_item2):
+    """
+    Test the /menu/download/generated endpoint returns a PDF file.
+    """
 
-        assert res.status_code == 404
-        assert res.json == {"error": "Menu item not found"}
+    response = client.get("/menu/download/generated")
+    
+    # for debugging purposes, save the response to a file:
+    # with open("test_menu.pdf", "wb") as f:
+    #     f.write(response.data)
+
+    assert response.status_code == 200
+    assert response.mimetype == "application/pdf"
+    assert response.data.startswith(b"%PDF")
+    assert "attachment; filename=cafe-watspeed-menu.pdf" in response.headers.get("Content-Disposition", "")
+
+def test_download_menu(client):
+    """
+    Test the /menu/download/ endpoint returns a PDF file.
+    """
+
+    response = client.get("/menu/download")
+
+    assert response.status_code == 200
+    assert response.mimetype == "application/pdf"
+    assert response.data.startswith(b"%PDF")
+    assert "attachment; filename=menu.pdf" in response.headers.get("Content-Disposition", "")

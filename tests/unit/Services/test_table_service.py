@@ -1,120 +1,138 @@
 import pytest
-from unittest.mock import MagicMock, patch
-from app.domain.table import Table
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from app.domain.table import Base, Table
 from app.Services.table_service import TableService
 from app.daos.table_dao import TableDAO
 
-class TestTableService:
-    @pytest.fixture
-    def mock_dao(self):
-        """Create mock TableDAO for testing"""
-        return MagicMock(spec=TableDAO)
+# Test database URL
+TEST_DB_URL = "postgresql://test_user:test_password@localhost/test_db"
+engine = create_engine(TEST_DB_URL)
+Session = sessionmaker(bind=engine)
 
-    @pytest.fixture
-    def sample_tables(self):
-        """Sample tables fixture"""
-        return [
-            Table(id=1, shop_id=1, capacity=4),
-            Table(id=2, shop_id=1, capacity=4),
-            Table(id=3, shop_id=2, capacity=6)
-        ]
+@pytest.fixture(scope="session")
+def setup_database():
+    """Ensures the test database follows the strict schema before tests."""
+    Base.metadata.create_all(engine)  # Create tables
+    yield
+    Base.metadata.drop_all(engine)  # Cleanup after tests
 
-    # ---- Basic CRUD Tests ----
-    def test_get_table_success(self, mock_dao, sample_tables):
-        """Test successfully getting a table"""
-        mock_dao.find.return_value = sample_tables[0]
-        service = TableService(mock_dao)
-        result = service.get_table(1)
-        
-        assert result.id == 1
-        assert result.capacity == 4
-        mock_dao.find.assert_called_once_with(1)
+@pytest.fixture(scope="function")
+def db_session(setup_database):
+    """Provides a fresh database session for each test."""
+    session = Session()
+    yield session
+    session.rollback()
+    session.close()
 
-    def test_get_table_not_found(self, mock_dao):
-        """Test getting non-existent table"""
-        mock_dao.find.return_value = None
-        service = TableService(mock_dao)
-        result = service.get_table(99)
-        
-        assert result is None
-        mock_dao.find.assert_called_once_with(99)
+@pytest.fixture
+def table_dao(db_session):
+    """Provides an instance of TableDAO with a test DB session."""
+    return TableDAO(db_session)
 
-    def test_get_all_tables(self, mock_dao, sample_tables):
-        """Test getting all tables"""
-        mock_dao.findAll.return_value = sample_tables
-        service = TableService(mock_dao)
-        result = service.get_all_tables()
-        
-        assert len(result) == 3
-        assert isinstance(result[0], Table)
-        mock_dao.findAll.assert_called_once()
+@pytest.fixture
+def sample_table(db_session):
+    """Creates and stores a sample table in the test database."""
+    table = Table(capacity=4, location="Downtown")
+    db_session.add(table)
+    db_session.commit()
+    db_session.refresh(table)
+    return table
 
-    # ---- Shop-Specific Tests ----
-    def test_get_tables_by_shop(self, mock_dao, sample_tables):
-        """Test getting tables for specific shop"""
-        mock_dao.find_by_shop.return_value = sample_tables[:2]  # First 2 tables are shop_id=1
-        service = TableService(mock_dao)
-        result = service.get_tables_by_shop(1)
-        
-        assert len(result) == 2
-        assert all(table.shop_id == 1 for table in result)
-        mock_dao.find_by_shop.assert_called_once_with(1)
+@pytest.fixture
+def sample_table2(db_session):
+    """Creates and stores another sample table in the test database."""
+    table = Table(capacity=6, location="Uptown")
+    db_session.add(table)
+    db_session.commit()
+    db_session.refresh(table)
+    return table
 
-    def test_get_tables_by_nonexistent_shop(self, mock_dao):
-        """Test getting tables for non-existent shop"""
-        mock_dao.find_by_shop.return_value = []
-        service = TableService(mock_dao)
-        result = service.get_tables_by_shop(99)
-        
-        assert len(result) == 0
-        mock_dao.find_by_shop.assert_called_once_with(99)
+@pytest.fixture(autouse=True)
+def clean_tables(db_session):
+    db_session.query(Table).delete()
+    db_session.commit()
 
-    # ---- Capacity Tests ----
-    def test_get_table_capacity_success(self, mock_dao):
-        """Test getting table capacity"""
-        mock_table = Table(id=1, shop_id=1, capacity=4)
-        mock_dao.find.return_value = mock_table
-        service = TableService(mock_dao)
-        result = service.get_table_capacity(1)
-        
-        assert result == 4
-        mock_dao.find.assert_called_once_with(1)
+# ---- Retrieval Tests ----
+def test_get_table_success(table_dao, sample_table):
+    """Test fetching a table successfully."""
+    service = TableService(table_dao)
+    result = service.get_table(sample_table.id)
 
-    def test_get_table_capacity_not_found(self, mock_dao):
-        """Test getting capacity for non-existent table"""
-        mock_dao.find.return_value = None
-        service = TableService(mock_dao)
-        result = service.get_table_capacity(99)
-        
-        assert result is None
-        mock_dao.find.assert_called_once_with(99)
+    assert result.id == sample_table.id
+    assert result.capacity == 4
+    assert result.location == "Downtown"
 
-    # ---- Edge Cases ----
-    def test_min_capacity_table(self, mock_dao):
-        """Test table with minimum capacity (1)"""
-        mock_table = Table(id=1, shop_id=1, capacity=1)
-        mock_dao.find.return_value = mock_table
-        service = TableService(mock_dao)
-        result = service.get_table_capacity(1)
-        
-        assert result == 1
+def test_get_table_not_found(table_dao):
+    """Test fetching a non-existent table."""
+    service = TableService(table_dao)
+    result = service.get_table(999)
+    assert result is None
 
-    def test_large_capacity_table(self, mock_dao):
-        """Test table with large capacity"""
-        mock_table = Table(id=1, shop_id=1, capacity=12)
-        mock_dao.find.return_value = mock_table
-        service = TableService(mock_dao)
-        result = service.get_table_capacity(1)
-        
-        assert result == 12
+def test_get_all_tables(table_dao, sample_table, sample_table2):
+    """Test retrieving all tables."""
+    service = TableService(table_dao)
+    result = service.get_all_tables()
 
-    # ---- Data Validation Tests ----
+    assert len(result) == 2
+    assert isinstance(result[0], Table)
+    assert isinstance(result[1], Table)
 
-    def test_empty_tables_list(self, mock_dao):
-        """Test when no tables exist"""
-        mock_dao.findAll.return_value = []
-        service = TableService(mock_dao)
-        result = service.get_all_tables()
-        
-        assert len(result) == 0
-        mock_dao.findAll.assert_called_once()
+# ---- Location-Specific Tests ----
+def test_get_tables_by_location(table_dao, sample_table):
+    """Test retrieving tables by location."""
+    service = TableService(table_dao)
+    result = service.get_tables_by_location("Downtown")
+
+    assert len(result) == 1
+    assert result[0].location == "Downtown"
+
+def test_get_tables_by_nonexistent_location(table_dao):
+    """Test retrieving tables from a non-existent location."""
+    service = TableService(table_dao)
+    result = service.get_tables_by_location("Nowhere")
+    assert len(result) == 0
+
+# ---- Capacity Tests ----
+def test_get_table_capacity_success(table_dao, sample_table):
+    """Test fetching table capacity."""
+    service = TableService(table_dao)
+    result = service.get_table_capacity(sample_table.id)
+
+    assert result == 4
+
+def test_get_table_capacity_not_found(table_dao):
+    """Test fetching capacity for a non-existent table."""
+    service = TableService(table_dao)
+    result = service.get_table_capacity(999)
+
+    assert result is None
+
+# ---- Edge Cases ----
+def test_min_capacity_table(table_dao, db_session):
+    """Test handling minimum capacity table."""
+    min_table = Table(capacity=1, location="Downtown")
+    db_session.add(min_table)
+    db_session.commit()
+    service = TableService(table_dao)
+
+    result = service.get_table_capacity(min_table.id)
+    assert result == 1
+
+def test_large_capacity_table(table_dao, db_session):
+    """Test handling large capacity tables."""
+    large_table = Table(capacity=12, location="Downtown")
+    db_session.add(large_table)
+    db_session.commit()
+    service = TableService(table_dao)
+
+    result = service.get_table_capacity(large_table.id)
+    assert result == 12
+
+# ---- Data Validation Tests ----
+def test_empty_tables_list(table_dao):
+    """Test when no tables exist in the database."""
+    service = TableService(table_dao)
+    result = service.get_all_tables()
+
+    assert len(result) == 0  # Database starts empty for this test
